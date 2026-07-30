@@ -56,3 +56,21 @@ Follow SOLID principles.
 This repository is the official engineering knowledge base for Aadhini OS.
 
 Every implementation must follow this repository.
+
+Current Phase:
+Phase 2 - Engine Contracts
+
+Completed:
+✅ Architecture
+✅ Models
+✅ Platform
+✅ Android Skeleton
+
+Current Task:
+DecisionEngine contracts
+
+Next:
+Pipeline wiring
+
+Frozen Rules:
+...
