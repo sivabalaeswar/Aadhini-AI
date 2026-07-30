@@ -1,0 +1,29 @@
+Reality
+    ↓
+Event
+    ↓
+Interaction
+    ↓
+Intent
+    ↓
+Entity
+    ↓
+Memory
+    ↓
+Context
+    ↓
+Pattern
+    ↓
+Learning
+    ↓
+Decision
+    ↓
+Execution
+    ↓
+Request
+    ↓
+Conversation
+    ↓
+Adapter
+    ↓
+Reality
