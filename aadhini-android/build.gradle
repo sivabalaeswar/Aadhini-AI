@@ -3,6 +3,9 @@ plugins {
     id 'kotlin-android'
 }
 
+// Ithu thaan magic line! Output-a 'app-build' folder-kku maathuthu
+layout.buildDirectory.set(file("app-build"))
+
 android {
     namespace 'ai.aadhini.app'
     compileSdk 34
@@ -18,12 +21,6 @@ android {
     sourceSets {
         main {
             java.srcDirs = ['.', '../aadhini-core', '../aadhini-platform']
-            
-            // Intha rendu lines thaan loop error-a cut pannum
-            java.include '**/*.kt'
-            java.exclude 'build/**'
-            java.exclude '**/build/**'
-            
             manifest.srcFile 'src/main/AndroidManifest.xml'
         }
     }
