@@ -3,8 +3,6 @@ plugins {
     id 'kotlin-android'
 }
 
-// THE ULTIMATE FIX: Output-a project root-kku ('APK-BUILD-FOLDER') thalli vaikkurom. 
-// Ithu aadhini-android folder-kulla varaathu, so loop aagathu!
 layout.buildDirectory.set(file("$rootDir/APK-BUILD-FOLDER"))
 
 android {
@@ -24,6 +22,15 @@ android {
             java.srcDirs = ['.', '../aadhini-core', '../aadhini-platform']
             manifest.srcFile 'src/main/AndroidManifest.xml'
         }
+    }
+
+    // Intha puthu block thaan version mismatch-a fix pannum
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
     }
 }
 
