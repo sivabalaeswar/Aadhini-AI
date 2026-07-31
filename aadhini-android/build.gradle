@@ -3,8 +3,9 @@ plugins {
     id 'kotlin-android'
 }
 
-// Ithu thaan magic line! Output-a 'app-build' folder-kku maathuthu
-layout.buildDirectory.set(file("app-build"))
+// THE ULTIMATE FIX: Output-a project root-kku ('APK-BUILD-FOLDER') thalli vaikkurom. 
+// Ithu aadhini-android folder-kulla varaathu, so loop aagathu!
+layout.buildDirectory.set(file("$rootDir/APK-BUILD-FOLDER"))
 
 android {
     namespace 'ai.aadhini.app'
