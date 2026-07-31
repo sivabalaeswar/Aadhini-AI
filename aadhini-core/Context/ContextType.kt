@@ -1,6 +1,4 @@
-Contexttype ai.aadhini.core.context
+package ai.aadhini.core.context
 
 @JvmInline
-value class ContextType(
-    val value: String
-)
+value class ContextType(val value: String)
