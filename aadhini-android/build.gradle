@@ -15,10 +15,10 @@ android {
         versionName "1.0"
     }
 
-    // Unga existing folders-a app source-a map panrathukku
     sourceSets {
         main {
             java.srcDirs = ['.', '../aadhini-core', '../aadhini-platform']
+            java.exclude 'build/**'
             manifest.srcFile 'src/main/AndroidManifest.xml'
         }
     }
