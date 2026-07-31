@@ -1,6 +1,6 @@
 package ai.aadhini.core.event
 
 @JvmInline
-value class EventId(
+value class EventType(
     val value: String
 )
