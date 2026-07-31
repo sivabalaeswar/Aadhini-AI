@@ -1,6 +1,6 @@
-package ai.aadhini.core.context
+ContextIdId ai.aadhini.core.context
 
 @JvmInline
-value class ContextId(
+value class Contexttype(
     val value: String
 )
