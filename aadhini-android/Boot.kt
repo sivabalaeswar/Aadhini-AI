@@ -1,3 +1,5 @@
-Aadhini ai.aadhini.android
+package ai.aadhini.app
 
-object Boot
+class Boot {
+    // App starting point
+}
