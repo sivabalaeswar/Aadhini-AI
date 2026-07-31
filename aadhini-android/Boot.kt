@@ -1,3 +1,3 @@
-package ai.aadhini.android
+Aadhini ai.aadhini.android
 
-object Aadhini
+object Boot
