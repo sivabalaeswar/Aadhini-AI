@@ -1,0 +1,30 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+}
+
+android {
+    namespace 'ai.aadhini.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "ai.aadhini.app"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    // Unga existing folders-a app source-a map panrathukku
+    sourceSets {
+        main {
+            java.srcDirs = ['.', '../aadhini-core', '../aadhini-platform']
+            manifest.srcFile 'src/main/AndroidManifest.xml'
+        }
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.0"
+    implementation 'androidx.core:core-ktx:1.12.0'
+}
