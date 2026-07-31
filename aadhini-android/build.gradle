@@ -18,7 +18,12 @@ android {
     sourceSets {
         main {
             java.srcDirs = ['.', '../aadhini-core', '../aadhini-platform']
+            
+            // Intha rendu lines thaan loop error-a cut pannum
+            java.include '**/*.kt'
             java.exclude 'build/**'
+            java.exclude '**/build/**'
+            
             manifest.srcFile 'src/main/AndroidManifest.xml'
         }
     }
