@@ -1,329 +1,165 @@
 package ai.aadhini.app
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.LinearGradient
-import android.graphics.Paint
-import android.graphics.Path
-import android.graphics.RectF
-import android.graphics.Shader
-import android.graphics.Typeface
+import android.graphics.*
 import android.media.AudioManager
 import android.media.ToneGenerator
 import android.os.Handler
 import android.os.Looper
 import android.view.MotionEvent
 import android.view.View
+import ai.aadhini.app.ui.environment.DeviceId
+import ai.aadhini.app.ui.navigation.AadhiniUiController
+import ai.aadhini.app.ui.navigation.AppRoute
 import kotlin.math.min
+import kotlin.math.sin
 
-/**
- * Native, dependency-light Aadhini presentation shell.
- * It deliberately owns only visual state and navigation; Core/Platform remain untouched.
- */
-class AadhiniRootView(context: Context) : View(context) {
-    private enum class Screen { BOOT, HOME, CONVERSATION }
-
-    private var screen = Screen.BOOT
-    private var bootProgress = 0f
-    private var bootStep = 0
-    private var bootMuted = false
-    private var avatarPulse = 0f
-    private var device = "MOTO"
-    private var lastTouchX = 0f
-    private var lastTouchY = 0f
+/** Presentation host. UI state is delegated to the presentation controller. */
+class AadhiniRootView(
+    context: Context,
+    private val controller: AadhiniUiController = AadhiniUiController()
+) : View(context) {
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
     private val handler = Handler(Looper.getMainLooper())
     private val tone = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 55)
-    private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val stroke = Paint(Paint.ANTI_ALIAS_FLAG)
-
+    private var bootProgress = 0f
+    private var bootStep = 0
+    private var pulse = 0f
     private val bootItems = arrayOf("Memory", "Context", "Decision", "Platform")
 
     init {
         isFocusable = true
-        paint.typeface = Typeface.create("sans", Typeface.NORMAL)
-        stroke.style = Paint.Style.STROKE
-        stroke.strokeWidth = 2f
         post(frameLoop)
         post(bootLoop)
     }
 
     private val frameLoop = object : Runnable {
-        override fun run() {
-            avatarPulse += 0.035f
-            invalidate()
-            postDelayed(this, 33L)
-        }
+        override fun run() { pulse += .035f; invalidate(); postDelayed(this, 33L) }
     }
 
     private val bootLoop = object : Runnable {
         override fun run() {
-            if (screen != Screen.BOOT) return
-            bootProgress += 0.035f
-            val targetStep = (bootProgress * bootItems.size).toInt().coerceAtMost(bootItems.size)
-            if (targetStep > bootStep) {
-                bootStep = targetStep
-                if (!bootMuted) tone.startTone(ToneGenerator.TONE_PROP_BEEP, 55)
-            }
+            if (controller.state.bootComplete) return
+            bootProgress = (bootProgress + .035f).coerceAtMost(1f)
+            val step = (bootProgress * bootItems.size).toInt().coerceAtMost(bootItems.size)
+            if (step > bootStep) { bootStep = step; if (!controller.state.muted) tone.startTone(ToneGenerator.TONE_PROP_BEEP, 55) }
             if (bootProgress >= 1f) {
-                if (!bootMuted) tone.startTone(ToneGenerator.TONE_PROP_ACK, 90)
-                screen = Screen.HOME
+                if (!controller.state.muted) tone.startTone(ToneGenerator.TONE_PROP_ACK, 90)
+                controller.completeBoot()
                 invalidate()
-                return
-            }
-            invalidate()
-            postDelayed(this, 85L)
+            } else { invalidate(); postDelayed(this, 85L) }
         }
     }
 
     override fun onDetachedFromWindow() {
-        tone.release()
         handler.removeCallbacksAndMessages(null)
+        tone.release()
         super.onDetachedFromWindow()
     }
 
     override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-        canvas.drawColor(0xFF050608.toInt())
+        canvas.drawColor(Color.rgb(5, 6, 8))
         drawAurora(canvas)
-        when (screen) {
-            Screen.BOOT -> drawBoot(canvas)
-            Screen.HOME -> drawHome(canvas)
-            Screen.CONVERSATION -> drawConversation(canvas)
+        if (!controller.state.bootComplete) drawBoot(canvas)
+        else when (controller.state.route) {
+            AppRoute.HOME -> drawHome(canvas)
+            AppRoute.CONVERSATION -> drawConversation(canvas)
+            AppRoute.SETTINGS -> drawSettings(canvas)
+            AppRoute.DEVICE -> drawDeviceScreen(canvas)
         }
-    }
-
-    private fun drawAurora(canvas: Canvas) {
-        val w = width.toFloat()
-        val h = height.toFloat()
-        val cx = w * 0.52f
-        val cy = h * 0.48f
-        val radius = min(w, h) * 0.42f
-        val glow = Paint(Paint.ANTI_ALIAS_FLAG)
-        glow.shader = android.graphics.RadialGradient(
-            cx, cy, radius,
-            intArrayOf(0x332f4cff, 0x181f2a78, 0x00050608),
-            floatArrayOf(0f, 0.42f, 1f),
-            Shader.TileMode.CLAMP
-        )
-        canvas.drawCircle(cx, cy, radius, glow)
-    }
-
-    private fun drawBoot(canvas: Canvas) {
-        val w = width.toFloat()
-        val h = height.toFloat()
-        val center = w / 2f
-        val logoY = h * 0.34f
-        drawAadhiniLogo(canvas, center, logoY, min(w, h) * 0.095f, true)
-
-        text(canvas, "A A D H I N I", center, logoY + h * 0.10f, 20f, 0xFFF7F8FF.toInt(), true)
-        text(canvas, "Restoring your world...", center, logoY + h * 0.17f, 16f, 0xB8D7DCEF.toInt(), true)
-
-        val left = w * 0.14f
-        val right = w * 0.86f
-        val top = h * 0.56f
-        val row = h * 0.075f
-        bootItems.forEachIndexed { index, label ->
-            val ready = index < bootStep
-            text(canvas, label, left, top + row * index, 16f, 0xFFF5F7FF.toInt(), false)
-            val status = if (ready) "✓ Ready" else "Loading"
-            val color = if (ready) 0xFF18E39A.toInt() else 0x85AEB7C8.toInt()
-            text(canvas, status, right, top + row * index, 16f, color, true, alignRight = true)
-        }
-
-        val barLeft = w * 0.16f
-        val barRight = w * 0.84f
-        val barY = top + row * bootItems.size + h * 0.035f
-        rounded(canvas, RectF(barLeft, barY, barRight, barY + 5f), 3f, 0x281F2A44)
-        rounded(canvas, RectF(barLeft, barY, barLeft + (barRight - barLeft) * bootProgress, barY + 5f), 3f, 0xFF6678FF.toInt())
-
-        text(canvas, "Continue where we left off.", center, h * 0.88f, 15f, 0x85AEB7C8.toInt(), true)
-        drawMute(canvas, w - 28f, 30f)
-    }
-
-    private fun drawHome(canvas: Canvas) {
-        val w = width.toFloat()
-        val h = height.toFloat()
-        val pad = 20f
-
-        drawMute(canvas, w - 28f, 30f)
-        drawDevice(canvas, pad, 30f)
-        drawAvatarStatus(canvas, w - 82f, 30f)
-
-        drawAadhiniLogo(canvas, pad + 28f, 92f, 27f, false)
-        text(canvas, "AADHINI", pad + 66f, 96f, 18f, 0xFFF5F7FF.toInt(), false)
-        text(canvas, "Good day, Chief.", pad + 66f, 120f, 14f, 0xB8D7DCEF.toInt(), false)
-
-        glass(canvas, RectF(pad, 148f, w - pad, 220f), 22f)
-        text(canvas, "TODAY'S BRIEF", pad + 18f, 175f, 12f, 0xB8D7DCEF.toInt(), false)
-        text(canvas, "You're all caught up.", pad + 18f, 202f, 17f, 0xFFF5F7FF.toInt(), false)
-
-        val contentTop = 242f
-        if (h > w) {
-            drawPortraitHome(canvas, pad, contentTop, w, h)
-        } else {
-            drawLandscapeHome(canvas, pad, contentTop, w, h)
-        }
-    }
-
-    private fun drawPortraitHome(canvas: Canvas, pad: Float, top: Float, w: Float, h: Float) {
-        glass(canvas, RectF(pad, top, w - pad, top + 78f), 22f)
-        text(canvas, "⌕", pad + 22f, top + 48f, 30f, 0xFFF5F7FF.toInt(), false)
-        text(canvas, "Search", pad + 62f, top + 47f, 16f, 0x85AEB7C8.toInt(), false)
-
-        val y = top + 98f
-        quickCard(canvas, pad, y, w - pad, y + 78f, "◉", "Conversation", "Open Aadhini chat", 2)
-        quickCard(canvas, pad, y + 92f, w - pad, y + 170f, "☎", "Calls", "Quick action", 0)
-        quickCard(canvas, pad, y + 184f, w - pad, y + 262f, "🚲", "BIK-E", "$device connected", 1)
-        quickCard(canvas, pad, y + 276f, w - pad, y + 354f, "▣", "Notifications", "Nothing urgent", 0)
-
-        text(canvas, "Tap a card to open its module", w / 2f, min(h - 26f, y + 390f), 12f, 0x85AEB7C8.toInt(), true)
-    }
-
-    private fun drawLandscapeHome(canvas: Canvas, pad: Float, top: Float, w: Float, h: Float) {
-        val gap = 14f
-        val cardW = (w - pad * 2f - gap * 2f) / 3f
-        quickCard(canvas, pad, top, pad + cardW, h - 30f, "◉", "Conversation", "Chat, voice & avatar", 2)
-        quickCard(canvas, pad + cardW + gap, top, pad + cardW * 2f + gap, h - 30f, "🚲", "BIK-E", "Live vehicle status", 1)
-        quickCard(canvas, pad + cardW * 2f + gap * 2f, top, w - pad, h - 30f, "◌", "Activity", "Notifications & tasks", 0)
-    }
-
-    private fun quickCard(canvas: Canvas, l: Float, t: Float, r: Float, b: Float, icon: String, title: String, subtitle: String, badge: Int) {
-        glass(canvas, RectF(l, t, r, b), 22f)
-        text(canvas, icon, l + 22f, t + 38f, 24f, 0xFF9A72FF.toInt(), false)
-        text(canvas, title, l + 22f, t + 68f, 17f, 0xFFF5F7FF.toInt(), false)
-        text(canvas, subtitle, l + 22f, t + 91f, 12f, 0xB8D7DCEF.toInt(), false)
-        if (badge > 0) {
-            val cx = r - 24f
-            val cy = t + 24f
-            val p = Paint(Paint.ANTI_ALIAS_FLAG)
-            p.color = 0xFF6678FF.toInt()
-            canvas.drawCircle(cx, cy, 12f, p)
-            text(canvas, badge.toString(), cx, cy + 5f, 11f, 0xFFFFFFFF.toInt(), true)
-        }
-    }
-
-    private fun drawConversation(canvas: Canvas) {
-        val w = width.toFloat()
-        val h = height.toFloat()
-        val pad = 18f
-        drawBack(canvas, pad, 34f)
-        drawAadhiniLogo(canvas, pad + 62f, 34f, 21f, false)
-        text(canvas, "AADHINI", pad + 94f, 39f, 16f, 0xFFF5F7FF.toInt(), false)
-        text(canvas, "Ready to listen", pad + 94f, 59f, 11f, 0xFF18E39A.toInt(), false)
-        drawAvatarStatus(canvas, w - 34f, 34f)
-
-        text(canvas, "How can I help, Chief?", pad, h * 0.28f, 25f, 0xFFF5F7FF.toInt(), false)
-        text(canvas, "Text or voice — both work here.", pad, h * 0.28f + 30f, 14f, 0xB8D7DCEF.toInt(), false)
-
-        val box = RectF(pad, h - 78f, w - pad, h - 18f)
-        glass(canvas, box, 28f)
-        text(canvas, "Message Aadhini...", pad + 20f, h - 42f, 14f, 0x85AEB7C8.toInt(), false)
-        text(canvas, "●", w - 52f, h - 40f, 18f, 0xFF61E7FF.toInt(), true)
-    }
-
-    private fun drawAadhiniLogo(canvas: Canvas, cx: Float, cy: Float, size: Float, animated: Boolean) {
-        val glow = Paint(Paint.ANTI_ALIAS_FLAG)
-        val pulse = if (animated) 1f + 0.08f * kotlin.math.sin(avatarPulse * 2.0).toFloat() else 1f
-        glow.color = 0x556678FF
-        canvas.drawCircle(cx, cy, size * 1.25f * pulse, glow)
-
-        val p = Path()
-        p.moveTo(cx - size * 0.72f, cy + size * 0.72f)
-        p.lineTo(cx, cy - size * 0.82f)
-        p.lineTo(cx + size * 0.72f, cy + size * 0.72f)
-        p.lineTo(cx + size * 0.43f, cy + size * 0.72f)
-        p.lineTo(cx, cy - size * 0.15f)
-        p.lineTo(cx - size * 0.43f, cy + size * 0.72f)
-        p.close()
-        val fill = Paint(Paint.ANTI_ALIAS_FLAG)
-        fill.shader = LinearGradient(cx, cy - size, cx, cy + size, 0xFF6678FF.toInt(), 0xFF9A72FF.toInt(), Shader.TileMode.CLAMP)
-        canvas.drawPath(p, fill)
-    }
-
-    private fun drawAvatarStatus(canvas: Canvas, cx: Float, cy: Float) {
-        val p = Paint(Paint.ANTI_ALIAS_FLAG)
-        p.color = 0xFF11141C.toInt()
-        canvas.drawCircle(cx, cy, 25f, p)
-        stroke.color = 0x2AFFFFFF
-        canvas.drawCircle(cx, cy, 25f, stroke)
-        val pulse = 1f + 0.15f * kotlin.math.sin(avatarPulse).toFloat()
-        p.color = 0xFF18E39A.toInt()
-        canvas.drawCircle(cx + 17f, cy + 17f, 5f * pulse, p)
-        text(canvas, "A", cx, cy + 6f, 18f, 0xFF9A72FF.toInt(), true)
-    }
-
-    private fun drawDevice(canvas: Canvas, x: Float, y: Float) {
-        glass(canvas, RectF(x, y - 18f, x + 78f, y + 18f), 18f)
-        text(canvas, device, x + 39f, y + 5f, 11f, 0xFF61E7FF.toInt(), true)
-    }
-
-    private fun drawMute(canvas: Canvas, cx: Float, cy: Float) {
-        val p = Paint(Paint.ANTI_ALIAS_FLAG)
-        p.color = 0xB8F5F7FF.toInt()
-        canvas.drawCircle(cx, cy, 14f, p)
-        text(canvas, if (bootMuted) "×" else "•", cx, cy + 5f, 13f, 0xFF050608.toInt(), true)
-    }
-
-    private fun drawBack(canvas: Canvas, x: Float, y: Float) {
-        text(canvas, "‹", x + 12f, y + 9f, 34f, 0xFFF5F7FF.toInt(), false)
-    }
-
-    private fun glass(canvas: Canvas, rect: RectF, radius: Float) {
-        rounded(canvas, rect, radius, 0x190B0D12)
-        stroke.color = 0x2AFFFFFF
-        stroke.strokeWidth = 1f
-        canvas.drawRoundRect(rect, radius, radius, stroke)
-    }
-
-    private fun rounded(canvas: Canvas, rect: RectF, radius: Float, color: Int) {
-        paint.shader = null
-        paint.color = color
-        canvas.drawRoundRect(rect, radius, radius, paint)
-    }
-
-    private fun text(canvas: Canvas, value: String, x: Float, baseline: Float, size: Float, color: Int, center: Boolean, alignRight: Boolean = false) {
-        paint.shader = null
-        paint.color = color
-        paint.textSize = size
-        paint.typeface = Typeface.create("sans", if (center) Typeface.BOLD else Typeface.NORMAL)
-        paint.textAlign = when {
-            alignRight -> Paint.Align.RIGHT
-            center -> Paint.Align.CENTER
-            else -> Paint.Align.LEFT
-        }
-        canvas.drawText(value, x, baseline, paint)
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (event.action != MotionEvent.ACTION_UP) return true
-        lastTouchX = event.x
-        lastTouchY = event.y
-        val w = width.toFloat()
-        val h = height.toFloat()
-
-        when (screen) {
-            Screen.BOOT -> {
-                if (event.x > w - 60f && event.y < 70f) {
-                    bootMuted = !bootMuted
-                    invalidate()
-                }
+        val x = event.x; val y = event.y; val w = width.toFloat(); val h = height.toFloat()
+        if (!controller.state.bootComplete) {
+            if (x > w - 70 && y < 70) controller.setMuted(!controller.state.muted)
+            invalidate(); return true
+        }
+        when (controller.state.route) {
+            AppRoute.HOME -> when {
+                y < 70 && x < 125 -> controller.openDevice()
+                y < 70 && x > w - 115 -> controller.openConversation()
+                y in 240f..340f -> controller.openConversation()
+                y in 340f..440f -> controller.openDevice()
+                y in 440f..540f -> controller.openSettings()
             }
-            Screen.HOME -> {
-                if (event.x > w - 115f && event.y < 80f) {
-                    screen = Screen.CONVERSATION
-                    invalidate()
-                } else if (event.y > 250f && event.y < 390f) {
-                    screen = Screen.CONVERSATION
-                    invalidate()
-                }
-            }
-            Screen.CONVERSATION -> {
-                if (event.x < 70f && event.y < 80f) {
-                    screen = Screen.HOME
-                    invalidate()
-                }
+            AppRoute.CONVERSATION -> if (y < 90 && x < 80) controller.goHome()
+            AppRoute.SETTINGS -> if (y < 90 && x < 80) controller.goHome()
+            AppRoute.DEVICE -> {
+                if (y < 90 && x < 80) controller.goHome()
+                else if (y in 140f..220f) controller.selectDevice(DeviceId.MOTO, true)
+                else if (y in 220f..300f) controller.selectDevice(DeviceId.OPPO, true)
+                else if (y in 300f..380f) controller.selectDevice(DeviceId.BIKE_E, true)
+                else if (y in 380f..460f) controller.selectDevice(DeviceId.TV, true)
             }
         }
-        return true
+        invalidate(); return true
     }
+
+    private fun drawAurora(c: Canvas) {
+        val r = min(width, height) * .48f
+        val g = Paint(Paint.ANTI_ALIAS_FLAG).apply { shader = RadialGradient(width*.52f, height*.45f, r, intArrayOf(0x333D52FF,0x181F2A78,0x00050608), floatArrayOf(0f,.45f,1f), Shader.TileMode.CLAMP) }
+        c.drawCircle(width*.52f, height*.45f, r, g)
+    }
+
+    private fun drawBoot(c: Canvas) {
+        val w=width.toFloat(); val h=height.toFloat(); val cx=w/2; val cy=h*.34f
+        logo(c,cx,cy,min(w,h)*.095f,true)
+        text(c,"A A D H I N I",cx,cy+h*.10f,20f,0xFFF7F8FF.toInt(),true)
+        text(c,"Restoring your world...",cx,cy+h*.17f,16f,0xB8D7DCEF.toInt(),true)
+        val top=h*.56f; val row=h*.075f
+        bootItems.forEachIndexed { i,label ->
+            text(c,label,w*.14f,top+row*i,16f,0xFFF5F7FF.toInt(),false)
+            text(c,if(i<bootStep)"✓ Ready" else "Loading",w*.86f,top+row*i,16f,if(i<bootStep)0xFF18E39A.toInt() else 0x85AEB7C8.toInt(),true,true)
+        }
+        val l=w*.16f; val r=w*.84f; val by=top+row*bootItems.size+h*.035f
+        round(c,RectF(l,by,r,by+5),3f,0x281F2A44); round(c,RectF(l,by,l+(r-l)*bootProgress,by+5),3f,0xFF6678FF.toInt())
+        text(c,"Continue where we left off.",cx,h*.88f,15f,0x85AEB7C8.toInt(),true)
+        mute(c,w-30f,30f)
+    }
+
+    private fun drawHome(c: Canvas) {
+        val w=width.toFloat(); val h=height.toFloat(); val p=20f
+        deviceChip(c,p,30f); avatar(c,w-55f,30f)
+        logo(c,p+28f,92f,27f,false); text(c,"AADHINI",p+66f,96f,18f,0xFFF5F7FF.toInt(),false)
+        text(c,"Good day, Chief.",p+66f,120f,14f,0xB8D7DCEF.toInt(),false)
+        glass(c,RectF(p,148f,w-p,220f),22f); text(c,"TODAY'S BRIEF",p+18f,175f,12f,0xB8D7DCEF.toInt(),false); text(c,"You're all caught up.",p+18f,202f,17f,0xFFF5F7FF.toInt(),false)
+        val top=240f
+        card(c,p,top,w-p,318f,"◉","Conversation","Chat, voice & avatar",2)
+        card(c,p,330f,w-p,408f,"☎","Calls","Quick action",0)
+        card(c,p,420f,w-p,498f,"◈","Device","${controller.state.device.device.name.replace("BIKE_E","BIK-E")}",1)
+        card(c,p,510f,w-p,588f,"▣","Settings","Preferences",0)
+        if(h>650) text(c,"Tap a card to open its module",w/2,h-28f,12f,0x85AEB7C8.toInt(),true)
+    }
+
+    private fun drawConversation(c: Canvas) {
+        val w=width.toFloat(); val h=height.toFloat(); back(c,28f,34f); logo(c,90f,34f,21f,false)
+        text(c,"AADHINI",122f,39f,16f,0xFFF5F7FF.toInt(),false); text(c,"Ready to listen",122f,59f,11f,0xFF18E39A.toInt(),false); avatar(c,w-34f,34f)
+        text(c,"How can I help, Chief?",18f,h*.30f,25f,0xFFF5F7FF.toInt(),false); text(c,"Text or voice — both work here.",18f,h*.30f+30f,14f,0xB8D7DCEF.toInt(),false)
+        glass(c,RectF(18f,h-78f,w-18f,h-18f),28f); text(c,"Message Aadhini...",38f,h-42f,14f,0x85AEB7C8.toInt(),false); text(c,"●",w-50f,h-40f,18f,0xFF61E7FF.toInt(),true)
+    }
+
+    private fun drawSettings(c: Canvas) {
+        back(c,28f,34f); text(c,"Settings",70f,40f,20f,0xFFF5F7FF.toInt(),false)
+        card(c,18f,100f,width-18f,178f,"◉","Chat preferences","Conversation behaviour",0)
+        card(c,18f,190f,width-18f,268f,"✦","Avatar preferences","Presence & avatar behaviour",0)
+        card(c,18f,280f,width-18f,358f,"⌁","Notifications","Priority and privacy",0)
+    }
+
+    private fun drawDeviceScreen(c: Canvas) {
+        back(c,28f,34f); text(c,"Devices",70f,40f,20f,0xFFF5F7FF.toInt(),false)
+        val ids=DeviceId.values(); ids.forEachIndexed { i,d -> card(c,18f,100f+i*82f,width-18f,170f+i*82f,"◈",d.name.replace("BIKE_E","BIK-E"),if(d==controller.state.device.device)"Selected" else "Tap to switch",if(d==controller.state.device.device)1 else 0) }
+    }
+
+    private fun card(c:Canvas,l:Float,t:Float,r:Float,b:Float,icon:String,title:String,sub:String,badge:Int){glass(c,RectF(l,t,r,b),22f);text(c,icon,l+20f,t+35f,23f,0xFF9A72FF.toInt(),false);text(c,title,l+58f,t+32f,16f,0xFFF5F7FF.toInt(),false);text(c,sub,l+58f,t+55f,12f,0xB8D7DCEF.toInt(),false);if(badge>0){paint.color=0xFF6678FF.toInt();c.drawCircle(r-24f,t+25f,12f,paint);text(c,badge.toString(),r-24f,t+29f,11f,Color.WHITE,true)}}
+    private fun glass(c:Canvas,r:RectF,rad:Float){round(c,r,rad,0x190B0D12);stroke.color=0x2AFFFFFF;stroke.strokeWidth=1f;c.drawRoundRect(r,rad,rad,stroke)}
+    private fun round(c:Canvas,r:RectF,rad:Float,color:Int){paint.shader=null;paint.color=color;c.drawRoundRect(r,rad,rad,paint)}
+    private fun text(c:Canvas,s:String,x:Float,y:Float,size:Float,color:Int,center:Boolean,right:Boolean=false){paint.shader=null;paint.color=color;paint.textSize=size;paint.typeface=Typeface.create("sans",if(center)Typeface.BOLD else Typeface.NORMAL);paint.textAlign=if(right)Paint.Align.RIGHT else if(center)Paint.Align.CENTER else Paint.Align.LEFT;c.drawText(s,x,y,paint)}
+    private fun logo(c:Canvas,cx:Float,cy:Float,size:Float,animated:Boolean){val p=Path();p.moveTo(cx-size*.72f,cy+size*.72f);p.lineTo(cx,cy-size*.82f);p.lineTo(cx+size*.72f,cy+size*.72f);p.lineTo(cx+size*.43f,cy+size*.72f);p.lineTo(cx,cy-size*.15f);p.lineTo(cx-size*.43f,cy+size*.72f);p.close();val f=Paint(Paint.ANTI_ALIAS_FLAG).apply{shader=LinearGradient(cx,cy-size,cx,cy+size,0xFF6678FF.toInt(),0xFF9A72FF.toInt(),Shader.TileMode.CLAMP)};c.drawPath(p,f);if(animated){paint.color=0x556678FF;c.drawCircle(cx,cy,size*(1.18f+.08f*sin(pulse*2)),paint)}}
+    private fun avatar(c:Canvas,cx:Float,cy:Float){paint.color=0xFF11141C.toInt();c.drawCircle(cx,cy,25f,paint);text(c,"A",cx,cy+6f,18f,0xFF9A72FF.toInt(),true);paint.color=0xFF18E39A.toInt();c.drawCircle(cx+17f,cy+17f,5f,paint)}
+    private fun deviceChip(c:Canvas,x:Float,y:Float){glass(c,RectF(x,y-18,x+82,y+18),18f);text(c,controller.state.device.device.name.replace("BIKE_E","BIK-E"),x+41,y+5,10f,0xFF61E7FF.toInt(),true)}
+    private fun mute(c:Canvas,x:Float,y:Float){paint.color=0xB8F5F7FF.toInt();c.drawCircle(x,y,14f,paint);text(c,if(controller.state.muted)"×" else "•",x,y+5,13f,0xFF050608.toInt(),true)}
+    private fun back(c:Canvas,x:Float,y:Float){text(c,"‹",x,y+9,34f,0xFFF5F7FF.toInt(),false)}
 }
