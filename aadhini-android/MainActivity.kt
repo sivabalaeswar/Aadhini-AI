@@ -4,6 +4,7 @@ import android.app.Activity
 import android.os.Bundle
 import android.view.Window
 import android.view.WindowManager
+import ai.aadhini.app.ui.navigation.AadhiniUiController
 
 class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -13,6 +14,6 @@ class MainActivity : Activity() {
             WindowManager.LayoutParams.FLAG_FULLSCREEN,
             WindowManager.LayoutParams.FLAG_FULLSCREEN
         )
-        setContentView(AadhiniRootView(this))
+        setContentView(AadhiniRootView(this, AadhiniUiController()))
     }
 }
