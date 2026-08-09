@@ -8,38 +8,16 @@ class AadhiniUiController(initial: AadhiniUiState = AadhiniUiState()) {
     var state: AadhiniUiState = initial
         private set
 
-    fun completeBoot() {
-        state = state.copy(bootComplete = true, route = AppRoute.HOME)
-    }
-
-    fun openConversation() {
-        state = state.copy(route = AppRoute.CONVERSATION)
-    }
-
-    fun openSettings() {
-        state = state.copy(route = AppRoute.SETTINGS)
-    }
-
-    fun openDevice() {
-        state = state.copy(route = AppRoute.DEVICE)
-    }
-
-    fun goHome() {
-        state = state.copy(route = AppRoute.HOME)
-    }
-
+    fun completeBoot() { state = state.copy(bootComplete = true, route = AppRoute.HOME) }
+    fun openConversation() = navigate(AppRoute.CONVERSATION)
+    fun openSettings() = navigate(AppRoute.SETTINGS)
+    fun openDevice() = navigate(AppRoute.DEVICE)
+    fun goHome() = navigate(AppRoute.HOME)
+    fun navigate(route: AppRoute) { state = state.copy(route = route) }
+    fun back() { if (state.route != AppRoute.HOME) state = state.copy(route = AppRoute.HOME) }
     fun selectDevice(device: DeviceId, connected: Boolean = false) {
-        state = state.copy(
-            route = AppRoute.HOME,
-            device = DeviceState(device, connected)
-        )
+        state = state.copy(route = AppRoute.HOME, device = DeviceState(device, connected))
     }
-
-    fun setNotificationCount(count: Int) {
-        state = state.copy(notificationCount = count.coerceAtLeast(0))
-    }
-
-    fun setMuted(muted: Boolean) {
-        state = state.copy(muted = muted)
-    }
+    fun setNotificationCount(count: Int) { state = state.copy(notificationCount = count.coerceAtLeast(0)) }
+    fun setMuted(muted: Boolean) { state = state.copy(muted = muted) }
 }
