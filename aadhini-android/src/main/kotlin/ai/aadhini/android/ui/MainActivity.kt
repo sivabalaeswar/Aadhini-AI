@@ -56,7 +56,10 @@ class MainActivity : AppCompatActivity() {
             val response = withContext(Dispatchers.IO) {
                 core.process(input)
             }
-            binding.tvStatus.text = response
+            val intent = core.getLastIntent()
+            val intentLabel = intent?.type?.name ?: "UNKNOWN"
+
+            binding.tvStatus.text = "$response\n\nIntent: $intentLabel"
             webView.evaluateJavascript("avatarTalk(false)", null)
         }
     }
