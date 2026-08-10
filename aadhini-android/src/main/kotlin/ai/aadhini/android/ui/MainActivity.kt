@@ -24,6 +24,7 @@ class MainActivity : AppCompatActivity() {
 
         setupWebView()
         setupUI()
+        updateProviderButton()
     }
 
     private fun setupWebView() {
@@ -46,6 +47,25 @@ class MainActivity : AppCompatActivity() {
         binding.btnAgents.setOnClickListener {
             simulateQuery("List active agents")
         }
+        binding.btnProvider.setOnClickListener {
+            toggleProvider()
+        }
+    }
+
+    private fun toggleProvider() {
+        val current = core.getActiveProvider()
+        val next = if (current == "demo") "gemini" else "demo"
+
+        if (core.setProvider(next)) {
+            updateProviderButton()
+            binding.tvStatus.text = "AI Provider switched to ${next.uppercase()}"
+        } else {
+            binding.tvStatus.text = "Provider unavailable: ${next.uppercase()}"
+        }
+    }
+
+    private fun updateProviderButton() {
+        binding.btnProvider.text = "AI Provider: ${core.getActiveProvider().uppercase()}"
     }
 
     private fun simulateQuery(input: String) {
