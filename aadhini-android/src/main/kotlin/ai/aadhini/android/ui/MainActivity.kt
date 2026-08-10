@@ -59,7 +59,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 }
 
                 override fun onError(utteranceId: String?) {
-                    runOnUiThread { setAvatarState("ERROR") }
+                    runOnUiThread { setAvatarState("IDLE") }
                 }
             })
         }
@@ -84,6 +84,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             if (state === 'SPEAKING') avatarTalk(true);
                             else avatarTalk(false);
                         };
+                        window.avatarStopTalking = function() { avatarTalk(false); };
                         window.avatarSetState('IDLE');
                     })();
                     """.trimIndent(), null
@@ -96,6 +97,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun setAvatarState(state: String) {
         if (::webView.isInitialized) {
             webView.evaluateJavascript("window.avatarSetState && window.avatarSetState('$state');", null)
+        }
+    }
+
+    private fun stopAvatarTalking() {
+        if (::webView.isInitialized) {
+            webView.evaluateJavascript("window.avatarStopTalking && window.avatarStopTalking();", null)
         }
     }
 
@@ -166,6 +173,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun simulateQuery(input: String) {
         binding.tvStatus.text = "Processing..."
+        stopAvatarTalking()
         setAvatarState("THINKING")
         lifecycleScope.launch {
             val response = withContext(Dispatchers.IO) { core.process(input) }
@@ -176,11 +184,17 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun speak(text: String) {
         if (!ttsReady || text.isBlank()) {
+            stopAvatarTalking()
             setAvatarState("IDLE")
             return
         }
-        setAvatarState("SPEAKING")
-        textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, "aadhini-response")
+        stopAvatarTalking()
+        textToSpeech.speak(
+            text,
+            TextToSpeech.QUEUE_FLUSH,
+            null,
+            "aadhini-response-${System.nanoTime()}"
+        )
     }
 
     private fun buildStateReport(response: String): String {
@@ -205,6 +219,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     override fun onDestroy() {
+        stopAvatarTalking()
         if (::textToSpeech.isInitialized) {
             textToSpeech.stop()
             textToSpeech.shutdown()
