@@ -6,7 +6,9 @@ import ai.aadhini.android.ai.GeminiProvider
 import ai.aadhini.core.decision.Decision
 import ai.aadhini.core.engine.BasicDecisionEngine
 import ai.aadhini.core.engine.BasicIntentEngine
+import ai.aadhini.core.engine.BasicMemoryEngine
 import ai.aadhini.core.intent.Intent
+import ai.aadhini.core.memory.Memory
 
 class AadhiniCore {
 
@@ -20,6 +22,7 @@ class AadhiniCore {
 
     private val intentEngine = BasicIntentEngine()
     private val decisionEngine = BasicDecisionEngine()
+    private val memoryEngine = BasicMemoryEngine()
 
     private var lastIntent: Intent? = null
     private var lastDecision: Decision? = null
@@ -28,6 +31,7 @@ class AadhiniCore {
         val intent = intentEngine.detect(input)
         lastIntent = intent
         lastDecision = decisionEngine.decide(intent)
+        memoryEngine.remember(input)
         return providerManager.process(input)
     }
 
@@ -41,6 +45,18 @@ class AadhiniCore {
 
     fun getLastDecisionType(): String {
         return lastDecision?.type?.name ?: "UNKNOWN"
+    }
+
+    fun getMemoryCount(): Int {
+        return memoryEngine.recall().size
+    }
+
+    fun getMemories(): List<Memory> {
+        return memoryEngine.recall()
+    }
+
+    fun clearMemory() {
+        memoryEngine.clear()
     }
 
     fun setProvider(name: String): Boolean {
