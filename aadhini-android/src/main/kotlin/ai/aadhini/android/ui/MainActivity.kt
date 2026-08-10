@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.speech.RecognizerIntent
+import android.speech.tts.TextToSpeech
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
@@ -16,12 +17,15 @@ import ai.aadhini.android.core.AadhiniCore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Locale
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private lateinit var binding: ActivityMainBinding
     private val core = AadhiniCore()
     private lateinit var webView: WebView
+    private lateinit var textToSpeech: TextToSpeech
+    private var ttsReady = false
 
     companion object {
         private const val REQUEST_RECORD_AUDIO = 1001
@@ -33,9 +37,18 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        textToSpeech = TextToSpeech(this, this)
         setupWebView()
         setupUI()
         updateProviderButton()
+    }
+
+    override fun onInit(status: Int) {
+        ttsReady = status == TextToSpeech.SUCCESS
+        if (ttsReady) {
+            textToSpeech.language = Locale.getDefault()
+            textToSpeech.setSpeechRate(0.95f)
+        }
     }
 
     private fun setupWebView() {
@@ -121,6 +134,7 @@ class MainActivity : AppCompatActivity() {
         if (core.setProvider(next)) {
             updateProviderButton()
             binding.tvStatus.text = "AI Provider switched to ${next.uppercase()}"
+            speak("AI Provider switched to ${next.uppercase()}")
         } else {
             binding.tvStatus.text = "Provider unavailable: ${next.uppercase()}"
         }
@@ -139,8 +153,14 @@ class MainActivity : AppCompatActivity() {
                 core.process(input)
             }
             binding.tvStatus.text = buildStateReport(response)
+            speak(response)
             webView.evaluateJavascript("avatarTalk(false)", null)
         }
+    }
+
+    private fun speak(text: String) {
+        if (!ttsReady || text.isBlank()) return
+        textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, "aadhini-response")
     }
 
     private fun buildStateReport(response: String): String {
@@ -161,15 +181,23 @@ class MainActivity : AppCompatActivity() {
 
     private fun showMemoryState() {
         val memories = core.getMemories()
-        if (memories.isEmpty()) {
-            binding.tvStatus.text = "Memory Engine\n\nNo memories stored yet."
-            return
+        val status = if (memories.isEmpty()) {
+            "Memory Engine\n\nNo memories stored yet."
+        } else {
+            val recent = memories.takeLast(5).asReversed().joinToString("\n") { memory ->
+                "• ${memory.content}"
+            }
+            "Memory Engine\n\nStored: ${memories.size}\n\n$recent"
         }
+        binding.tvStatus.text = status
+        speak(status)
+    }
 
-        val recent = memories.takeLast(5).asReversed().joinToString("\n") { memory ->
-            "• ${memory.content}"
+    override fun onDestroy() {
+        if (::textToSpeech.isInitialized) {
+            textToSpeech.stop()
+            textToSpeech.shutdown()
         }
-
-        binding.tvStatus.text = "Memory Engine\n\nStored: ${memories.size}\n\n$recent"
+        super.onDestroy()
     }
 }
