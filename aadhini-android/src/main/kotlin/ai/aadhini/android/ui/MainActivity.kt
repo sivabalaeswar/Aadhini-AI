@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
@@ -48,14 +49,54 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val result = textToSpeech.setLanguage(Locale.getDefault())
             ttsReady = result != TextToSpeech.LANG_MISSING_DATA && result != TextToSpeech.LANG_NOT_SUPPORTED
             textToSpeech.setSpeechRate(0.95f)
+            textToSpeech.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                override fun onStart(utteranceId: String?) {
+                    runOnUiThread { setAvatarState("SPEAKING") }
+                }
+
+                override fun onDone(utteranceId: String?) {
+                    runOnUiThread { setAvatarState("IDLE") }
+                }
+
+                override fun onError(utteranceId: String?) {
+                    runOnUiThread { setAvatarState("ERROR") }
+                }
+            })
         }
     }
 
     private fun setupWebView() {
         webView = binding.webViewAvatar
         webView.settings.javaScriptEnabled = true
-        webView.webViewClient = WebViewClient()
+        webView.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                view?.evaluateJavascript(
+                    """
+                    (function() {
+                        window.avatarSetState = function(state) {
+                            document.body.dataset.avatarState = state;
+                            const ring = document.querySelector('.glow-ring');
+                            if (ring) {
+                                ring.style.animationDuration = state === 'THINKING' ? '0.8s' : '2s';
+                                ring.style.transform = state === 'LISTENING' ? 'scale(1.04)' : 'scale(1)';
+                            }
+                            if (state === 'SPEAKING') avatarTalk(true);
+                            else avatarTalk(false);
+                        };
+                        window.avatarSetState('IDLE');
+                    })();
+                    """.trimIndent(), null
+                )
+            }
+        }
         webView.loadUrl("file:///android_asset/avatar.html")
+    }
+
+    private fun setAvatarState(state: String) {
+        if (::webView.isInitialized) {
+            webView.evaluateJavascript("window.avatarSetState && window.avatarSetState('$state');", null)
+        }
     }
 
     private fun setupUI() {
@@ -81,6 +122,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), REQUEST_RECORD_AUDIO)
             return
         }
+        setAvatarState("LISTENING")
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             putExtra(RecognizerIntent.EXTRA_PROMPT, "Talk to Aadhini")
@@ -90,11 +132,17 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode != REQUEST_VOICE_INPUT || resultCode != RESULT_OK) return
+        if (requestCode != REQUEST_VOICE_INPUT) return
+        if (resultCode != RESULT_OK) {
+            setAvatarState("IDLE")
+            return
+        }
         val spoken = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()?.trim().orEmpty()
         if (spoken.isNotEmpty()) {
             binding.etChatInput.setText(spoken)
             simulateQuery(spoken)
+        } else {
+            setAvatarState("IDLE")
         }
     }
 
@@ -108,6 +156,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             speak(message)
         } else {
             binding.tvStatus.text = "Provider unavailable: ${next.uppercase()}"
+            setAvatarState("ERROR")
         }
     }
 
@@ -117,17 +166,20 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun simulateQuery(input: String) {
         binding.tvStatus.text = "Processing..."
-        webView.evaluateJavascript("avatarTalk(true)", null)
+        setAvatarState("THINKING")
         lifecycleScope.launch {
             val response = withContext(Dispatchers.IO) { core.process(input) }
             binding.tvStatus.text = buildStateReport(response)
             speak(response)
-            webView.evaluateJavascript("avatarTalk(false)", null)
         }
     }
 
     private fun speak(text: String) {
-        if (!ttsReady || text.isBlank()) return
+        if (!ttsReady || text.isBlank()) {
+            setAvatarState("IDLE")
+            return
+        }
+        setAvatarState("SPEAKING")
         textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, "aadhini-response")
     }
 
