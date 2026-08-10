@@ -41,7 +41,7 @@ class MainActivity : AppCompatActivity() {
             simulateQuery("Run decision engine")
         }
         binding.btnMemory.setOnClickListener {
-            simulateQuery("Check memory engine")
+            showMemoryState()
         }
         binding.btnAgents.setOnClickListener {
             simulateQuery("List active agents")
@@ -58,9 +58,25 @@ class MainActivity : AppCompatActivity() {
             }
             val intent = core.getLastIntent()
             val intentLabel = intent?.type?.name ?: "UNKNOWN"
+            val decisionLabel = core.getLastDecisionType()
+            val memoryCount = core.getMemoryCount()
 
-            binding.tvStatus.text = "$response\n\nIntent: $intentLabel"
+            binding.tvStatus.text = "$response\n\nIntent: $intentLabel\nDecision: $decisionLabel\nMemory: $memoryCount"
             webView.evaluateJavascript("avatarTalk(false)", null)
         }
+    }
+
+    private fun showMemoryState() {
+        val memories = core.getMemories()
+        if (memories.isEmpty()) {
+            binding.tvStatus.text = "Memory Engine\n\nNo memories stored yet."
+            return
+        }
+
+        val recent = memories.takeLast(5).asReversed().joinToString("\n") { memory ->
+            "• ${memory.content}"
+        }
+
+        binding.tvStatus.text = "Memory Engine\n\nStored: ${memories.size}\n\n$recent"
     }
 }
