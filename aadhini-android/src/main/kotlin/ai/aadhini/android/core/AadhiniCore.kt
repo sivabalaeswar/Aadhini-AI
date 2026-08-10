@@ -39,6 +39,10 @@ class AadhiniCore {
         return lastDecision
     }
 
+    fun getLastDecisionType(): String {
+        return lastDecision?.type?.name ?: "UNKNOWN"
+    }
+
     fun setProvider(name: String): Boolean {
         return providerManager.setProvider(name)
     }
