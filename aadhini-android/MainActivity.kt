@@ -1,9 +1,10 @@
-package ai.aadhini.app
+package ai.aadhini.android.ui
 
 import android.app.Activity
 import android.os.Bundle
 import android.view.Window
 import android.view.WindowManager
+import ai.aadhini.app.AadhiniRootView
 import ai.aadhini.app.ui.navigation.AadhiniUiController
 
 class MainActivity : Activity() {
