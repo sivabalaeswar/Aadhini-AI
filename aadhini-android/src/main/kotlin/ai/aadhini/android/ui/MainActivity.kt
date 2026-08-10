@@ -56,14 +56,25 @@ class MainActivity : AppCompatActivity() {
             val response = withContext(Dispatchers.IO) {
                 core.process(input)
             }
-            val intent = core.getLastIntent()
-            val intentLabel = intent?.type?.name ?: "UNKNOWN"
-            val decisionLabel = core.getLastDecisionType()
-            val memoryCount = core.getMemoryCount()
-
-            binding.tvStatus.text = "$response\n\nIntent: $intentLabel\nDecision: $decisionLabel\nMemory: $memoryCount"
+            binding.tvStatus.text = buildStateReport(response)
             webView.evaluateJavascript("avatarTalk(false)", null)
         }
+    }
+
+    private fun buildStateReport(response: String): String {
+        val intent = core.getLastIntent()
+        val intentLabel = intent?.type?.name ?: "UNKNOWN"
+        val decisionLabel = core.getLastDecisionType()
+        val contextLabel = core.getLastContextType()
+        val memoryCount = core.getMemoryCount()
+        val provider = core.getActiveProvider().uppercase()
+
+        return "$response\n\n" +
+            "Intent   : $intentLabel\n" +
+            "Decision : $decisionLabel\n" +
+            "Context  : $contextLabel\n" +
+            "Memory   : $memoryCount\n" +
+            "Provider : $provider"
     }
 
     private fun showMemoryState() {
