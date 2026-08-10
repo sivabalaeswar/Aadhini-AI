@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0e1a; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+.container { position: relative; width: 280px; height: 280px; }
+.glow-ring { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 3px solid #c084fc; box-shadow: 0 0 30px #c084fc, 0 0 60px #7c3aed, inset 0 0 30px rgba(192,132,252,0.1); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 30px #c084fc, 0 0 60px #7c3aed; } 50% { box-shadow: 0 0 50px #c084fc, 0 0 100px #7c3aed; } }
+svg { width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<div class="container">
+<div class="glow-ring"></div>
+<svg id="face" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <circle cx="100" cy="100" r="95" fill="#1a1a2e"/>
+  <!-- Long hair back -->
+  <ellipse cx="100" cy="50" rx="63" ry="35" fill="#1a0a00"/>
+  <rect x="37" y="50" width="20" height="100" fill="#1a0a00" rx="10"/>
+  <rect x="143" y="50" width="20" height="100" fill="#1a0a00" rx="10"/>
+  <!-- Neck -->
+  <rect x="85" y="158" width="30" height="25" fill="#f5c5a3" rx="6"/>
+  <!-- Face -->
+  <ellipse cx="100" cy="105" rx="60" ry="68" fill="#f5c5a3"/>
+  <!-- Ears -->
+  <ellipse cx="40" cy="105" rx="8" ry="12" fill="#f5c5a3"/>
+  <ellipse cx="160" cy="105" rx="8" ry="12" fill="#f5c5a3"/>
+  <!-- Earrings -->
+  <circle cx="40" cy="118" r="4" fill="#c084fc"/>
+  <circle cx="160" cy="118" r="4" fill="#c084fc"/>
+  <!-- Hair front -->
+  <ellipse cx="100" cy="45" rx="63" ry="30" fill="#2d1200"/>
+  <path d="M37 60 Q35 90 38 110" stroke="#2d1200" stroke-width="15" fill="none" stroke-linecap="round"/>
+  <path d="M163 60 Q165 90 162 110" stroke="#2d1200" stroke-width="15" fill="none" stroke-linecap="round"/>
+  <!-- Hair parting -->
+  <path d="M70 38 Q100 32 130 38" stroke="#2d1200" stroke-width="6" fill="none"/>
+
+  <!-- Eyebrows - thin feminine -->
+  <path id="leftBrow" d="M60 82 Q73 76 86 80" stroke="#2d1200" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path id="rightBrow" d="M114 80 Q127 76 140 82" stroke="#2d1200" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Eye whites -->
+  <ellipse cx="75" cy="100" rx="14" ry="12" fill="white"/>
+  <ellipse cx="125" cy="100" rx="14" ry="12" fill="white"/>
+
+  <!-- Iris - brown eyes -->
+  <circle id="leftIris" cx="75" cy="100" r="8.5" fill="#6b3a2a"/>
+  <circle id="rightIris" cx="125" cy="100" r="8.5" fill="#6b3a2a"/>
+  <circle cx="75" cy="100" r="5.5" fill="#3d1f14"/>
+  <circle cx="125" cy="100" r="5.5" fill="#3d1f14"/>
+
+  <!-- Pupils -->
+  <circle id="leftPupil" cx="75" cy="100" r="3" fill="#000"/>
+  <circle id="rightPupil" cx="125" cy="100" r="3" fill="#000"/>
+
+  <!-- Eye shine -->
+  <circle cx="78" cy="96" r="2.5" fill="white" opacity="0.9"/>
+  <circle cx="128" cy="96" r="2.5" fill="white" opacity="0.9"/>
+
+  <!-- Eyelashes top -->
+  <path d="M61 93 Q75 88 89 93" stroke="#1a0a00" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M111 93 Q125 88 139 93" stroke="#1a0a00" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <!-- Eyelids -->
+  <ellipse id="leftLidTop" cx="75" cy="100" rx="14" ry="12" fill="#f5c5a3" style="transform-origin: 75px 88px; transform: scaleY(0); transition: transform 0.1s;"/>
+  <ellipse id="rightLidTop" cx="125" cy="100" rx="14" ry="12" fill="#f5c5a3" style="transform-origin: 125px 88px; transform: scaleY(0); transition: transform 0.1s;"/>
+
+  <!-- Nose - small -->
+  <path d="M97 114 Q100 120 103 114" stroke="#d4956a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Mouth -->
+  <path id="upperLip" d="M82 138 Q91 133 100 135 Q109 133 118 138" stroke="#c0506a" stroke-width="2" fill="#e8607a"/>
+  <path id="lowerLip" d="M82 138 Q100 147 118 138" stroke="#c0506a" stroke-width="2" fill="#e8607a"/>
+  <path id="mouthOpen" d="M84 138 Q100 138 116 138" fill="#5a0010" opacity="0"/>
+
+  <!-- Cheeks blush -->
+  <ellipse cx="55" cy="118" rx="15" ry="10" fill="#ffb3c6" opacity="0.4"/>
+  <ellipse cx="145" cy="118" rx="15" ry="10" fill="#ffb3c6" opacity="0.4"/>
+</svg>
+</div>
+
+<script>
+let isTalking = false;
+let talkInterval;
+let mouthState = 0;
+let floatY = 0;
+let eyeX = 0, eyeY = 0;
+let targetEyeX = 0, targetEyeY = 0;
+
+function blink() {
+    ['leftLidTop','rightLidTop'].forEach(id => {
+        document.getElementById(id).style.transform = 'scaleY(1)';
+    });
+    setTimeout(() => {
+        ['leftLidTop','rightLidTop'].forEach(id => {
+            document.getElementById(id).style.transform = 'scaleY(0)';
+        });
+    }, 120);
+}
+setInterval(blink, 3000 + Math.random() * 2000);
+
+function moveEyes() {
+    targetEyeX = (Math.random() - 0.5) * 3;
+    targetEyeY = (Math.random() - 0.5) * 2;
+}
+setInterval(moveEyes, 2000 + Math.random() * 2000);
+
+window.avatarTalk = function(talking) {
+    isTalking = talking;
+    if (!talking) {
+        clearInterval(talkInterval);
+        document.getElementById('lowerLip').setAttribute('d', 'M82 138 Q100 147 118 138');
+        document.getElementById('mouthOpen').style.opacity = '0';
+        document.getElementById('upperLip').setAttribute('d', 'M82 138 Q91 133 100 135 Q109 133 118 138');
+    } else {
+        talkInterval = setInterval(() => {
+            mouthState = (mouthState + 1) % 4;
+            const s = [
+                { lower: 'M82 138 Q100 147 118 138', open: 0, upper: 'M82 138 Q91 133 100 135 Q109 133 118 138' },
+                { lower: 'M82 140 Q100 153 118 140', open: 0.8, upper: 'M82 136 Q91 130 100 132 Q109 130 118 136' },
+                { lower: 'M82 139 Q100 149 118 139', open: 0.5, upper: 'M82 137 Q91 132 100 134 Q109 132 118 137' },
+                { lower: 'M82 141 Q100 155 118 141', open: 1, upper: 'M82 135 Q91 129 100 131 Q109 129 118 135' },
+            ][mouthState];
+            document.getElementById('lowerLip').setAttribute('d', s.lower);
+            document.getElementById('upperLip').setAttribute('d', s.upper);
+            document.getElementById('mouthOpen').style.opacity = s.open;
+        }, 150);
+    }
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    floatY += 0.02;
+    eyeX += (targetEyeX - eyeX) * 0.05;
+    eyeY += (targetEyeY - eyeY) * 0.05;
+    document.getElementById('leftPupil').setAttribute('cx', 75 + eyeX);
+    document.getElementById('leftPupil').setAttribute('cy', 100 + eyeY);
+    document.getElementById('rightPupil').setAttribute('cx', 125 + eyeX);
+    document.getElementById('rightPupil').setAttribute('cy', 100 + eyeY);
+    document.getElementById('leftIris').setAttribute('cx', 75 + eyeX * 0.7);
+    document.getElementById('leftIris').setAttribute('cy', 100 + eyeY * 0.7);
+    document.getElementById('rightIris').setAttribute('cx', 125 + eyeX * 0.7);
+    document.getElementById('rightIris').setAttribute('cy', 100 + eyeY * 0.7);
+    document.getElementById('face').style.transform = `translateY(${Math.sin(floatY) * 4}px)`;
+}
+animate();
+</script>
+</body>
+</html>

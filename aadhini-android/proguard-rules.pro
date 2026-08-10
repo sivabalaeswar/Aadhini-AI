@@ -1,0 +1,2 @@
+-keep class ai.aadhini.** { *; }
+-keepclassmembers class ai.aadhini.** { *; }
