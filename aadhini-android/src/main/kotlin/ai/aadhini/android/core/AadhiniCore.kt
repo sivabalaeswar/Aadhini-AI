@@ -3,6 +3,8 @@ package ai.aadhini.android.core
 import ai.aadhini.android.ai.AIProviderManager
 import ai.aadhini.android.ai.DemoProvider
 import ai.aadhini.android.ai.GeminiProvider
+import ai.aadhini.core.decision.Decision
+import ai.aadhini.core.engine.BasicDecisionEngine
 import ai.aadhini.core.engine.BasicIntentEngine
 import ai.aadhini.core.intent.Intent
 
@@ -17,16 +19,24 @@ class AadhiniCore {
     )
 
     private val intentEngine = BasicIntentEngine()
+    private val decisionEngine = BasicDecisionEngine()
 
     private var lastIntent: Intent? = null
+    private var lastDecision: Decision? = null
 
     fun process(input: String): String {
-        lastIntent = intentEngine.detect(input)
+        val intent = intentEngine.detect(input)
+        lastIntent = intent
+        lastDecision = decisionEngine.decide(intent)
         return providerManager.process(input)
     }
 
     fun getLastIntent(): Intent? {
         return lastIntent
+    }
+
+    fun getLastDecision(): Decision? {
+        return lastDecision
     }
 
     fun setProvider(name: String): Boolean {
