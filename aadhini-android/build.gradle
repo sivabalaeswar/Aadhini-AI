@@ -6,7 +6,7 @@ plugins {
 layout.buildDirectory.set(file("$rootDir/APK-BUILD-FOLDER"))
 
 android {
-    namespace 'ai.aadhini.app'
+    namespace 'ai.aadhini.android'
     compileSdk 34
 
     defaultConfig {
