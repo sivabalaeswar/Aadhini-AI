@@ -30,8 +30,18 @@ class AadhiniRootView(
 
     init {
         isFocusable = true
+        setLayerType(View.LAYER_TYPE_SOFTWARE, null)
         post(frameLoop)
         post(bootLoop)
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        // A custom View has no intrinsic size. Explicitly consume the Activity window
+        // so the Aadhini UI cannot end up as a 0x0 content view.
+        setMeasuredDimension(
+            MeasureSpec.getSize(widthMeasureSpec),
+            MeasureSpec.getSize(heightMeasureSpec)
+        )
     }
 
     private val frameLoop = object : Runnable {
@@ -43,12 +53,18 @@ class AadhiniRootView(
             if (controller.state.bootComplete) return
             bootProgress = (bootProgress + .035f).coerceAtMost(1f)
             val step = (bootProgress * bootItems.size).toInt().coerceAtMost(bootItems.size)
-            if (step > bootStep) { bootStep = step; if (!controller.state.muted) tone.startTone(ToneGenerator.TONE_PROP_BEEP, 55) }
+            if (step > bootStep) {
+                bootStep = step
+                if (!controller.state.muted) tone.startTone(ToneGenerator.TONE_PROP_BEEP, 55)
+            }
             if (bootProgress >= 1f) {
                 if (!controller.state.muted) tone.startTone(ToneGenerator.TONE_PROP_ACK, 90)
                 controller.completeBoot()
                 invalidate()
-            } else { invalidate(); postDelayed(this, 85L) }
+            } else {
+                invalidate()
+                postDelayed(this, 85L)
+            }
         }
     }
 
@@ -100,7 +116,11 @@ class AadhiniRootView(
 
     private fun drawAurora(c: Canvas) {
         val r = min(width, height) * .48f
-        val g = Paint(Paint.ANTI_ALIAS_FLAG).apply { shader = RadialGradient(width*.52f, height*.45f, r, intArrayOf(0x333D52FF,0x181F2A78,0x00050608), floatArrayOf(0f,.45f,1f), Shader.TileMode.CLAMP) }
+        val g = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = RadialGradient(width*.52f, height*.45f, r,
+                intArrayOf(0x333D52FF,0x181F2A78,0x00050608),
+                floatArrayOf(0f,.45f,1f), Shader.TileMode.CLAMP)
+        }
         c.drawCircle(width*.52f, height*.45f, r, g)
     }
 
@@ -112,10 +132,12 @@ class AadhiniRootView(
         val top=h*.56f; val row=h*.075f
         bootItems.forEachIndexed { i,label ->
             text(c,label,w*.14f,top+row*i,16f,0xFFF5F7FF.toInt(),false)
-            text(c,if(i<bootStep)"✓ Ready" else "Loading",w*.86f,top+row*i,16f,if(i<bootStep)0xFF18E39A.toInt() else 0x85AEB7C8.toInt(),true,true)
+            text(c,if(i<bootStep)"✓ Ready" else "Loading",w*.86f,top+row*i,16f,
+                if(i<bootStep)0xFF18E39A.toInt() else 0x85AEB7C8.toInt(),true,true)
         }
         val l=w*.16f; val r=w*.84f; val by=top+row*bootItems.size+h*.035f
-        round(c,RectF(l,by,r,by+5),3f,0x281F2A44); round(c,RectF(l,by,l+(r-l)*bootProgress,by+5),3f,0xFF6678FF.toInt())
+        round(c,RectF(l,by,r,by+5),3f,0x281F2A44)
+        round(c,RectF(l,by,l+(r-l)*bootProgress,by+5),3f,0xFF6678FF.toInt())
         text(c,"Continue where we left off.",cx,h*.88f,15f,0x85AEB7C8.toInt(),true)
         mute(c,w-30f,30f)
     }
