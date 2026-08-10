@@ -1,200 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/bg_dark"
-    android:padding="0dp">
-
-    <TextView
-        android:id="@+id/tvAppName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="⬡ AADHINI"
-        android:textColor="@color/accent_blue"
-        android:textSize="13sp"
-        android:textStyle="bold"
-        android:letterSpacing="0.2"
-        android:layout_marginTop="24dp"
-        android:layout_marginStart="24dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
-        android:id="@+id/tvSubtitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Personal AI Administrator"
-        android:textColor="@color/text_muted"
-        android:textSize="11sp"
-        android:layout_marginTop="4dp"
-        android:layout_marginStart="24dp"
-        app:layout_constraintTop_toBottomOf="@id/tvAppName"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <WebView
-        android:id="@+id/webViewAvatar"
-        android:layout_width="0dp"
-        android:layout_height="220dp"
-        app:layout_constraintTop_toBottomOf="@id/tvSubtitle"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp" />
-
-    <TextView
-        android:id="@+id/tvStatus"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Aadhini OS initialized.\nMaster Core: ACTIVE\nPhase 2 — Engine Contracts"
-        android:textColor="@color/text_primary"
-        android:textSize="13sp"
-        android:lineSpacingExtra="4dp"
-        android:background="@drawable/status_bg"
-        android:padding="16dp"
-        android:fontFamily="monospace"
-        android:layout_marginTop="16dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp"
-        app:layout_constraintTop_toBottomOf="@id/webViewAvatar"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <LinearLayout
-        android:id="@+id/layoutChat"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="12dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp"
-        app:layout_constraintTop_toBottomOf="@id/tvStatus"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <EditText
-            android:id="@+id/etChatInput"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:hint="Talk to Aadhini..."
-            android:singleLine="true"
-            android:inputType="textCapSentences"
-            android:textColor="@color/text_primary"
-            android:textColorHint="@color/text_muted"
-            android:background="@drawable/status_bg"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
-            android:layout_marginEnd="6dp" />
-
-        <Button
-            android:id="@+id/btnSend"
-            android:layout_width="52dp"
-            android:layout_height="48dp"
-            android:text="➤"
-            android:textSize="18sp"
-            android:backgroundTint="@color/surface_high"
-            android:textColor="@color/text_primary"
-            android:stateListAnimator="@null" />
-
-        <Button
-            android:id="@+id/btnVoice"
-            android:layout_width="52dp"
-            android:layout_height="48dp"
-            android:text="🎙"
-            android:textSize="16sp"
-            android:backgroundTint="@color/surface_high"
-            android:textColor="@color/text_primary"
-            android:layout_marginStart="6dp"
-            android:stateListAnimator="@null" />
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/bg_dark" android:padding="0dp">
+    <TextView android:id="@+id/tvAppName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⬡ AADHINI" android:textColor="@color/accent_blue" android:textSize="13sp" android:textStyle="bold" android:letterSpacing="0.2" android:layout_marginTop="24dp" android:layout_marginStart="24dp" app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent" />
+    <TextView android:id="@+id/tvSubtitle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Personal AI Administrator" android:textColor="@color/text_muted" android:textSize="11sp" android:layout_marginTop="4dp" android:layout_marginStart="24dp" app:layout_constraintTop_toBottomOf="@id/tvAppName" app:layout_constraintStart_toStartOf="parent" />
+    <WebView android:id="@+id/webViewAvatar" android:layout_width="0dp" android:layout_height="220dp" app:layout_constraintTop_toBottomOf="@id/tvSubtitle" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" android:layout_marginTop="16dp" />
+    <TextView android:id="@+id/tvStatus" android:layout_width="0dp" android:layout_height="wrap_content" android:text="Aadhini OS initialized.\nMaster Core: ACTIVE\nPhase 2 — Engine Contracts" android:textColor="@color/text_primary" android:textSize="13sp" android:lineSpacingExtra="4dp" android:background="@drawable/status_bg" android:padding="16dp" android:fontFamily="monospace" android:layout_marginTop="16dp" android:layout_marginStart="20dp" android:layout_marginEnd="20dp" app:layout_constraintTop_toBottomOf="@id/webViewAvatar" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
+    <LinearLayout android:id="@+id/layoutChat" android:layout_width="0dp" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="12dp" android:layout_marginStart="20dp" android:layout_marginEnd="20dp" app:layout_constraintTop_toBottomOf="@id/tvStatus" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
+        <EditText android:id="@+id/etChatInput" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:hint="Talk to Aadhini..." android:singleLine="true" android:inputType="textCapSentences" android:textColor="@color/text_primary" android:textColorHint="@color/text_muted" android:background="@drawable/status_bg" android:paddingStart="14dp" android:paddingEnd="14dp" android:layout_marginEnd="6dp" />
+        <Button android:id="@+id/btnSend" android:layout_width="52dp" android:layout_height="48dp" android:text="➤" android:textSize="18sp" android:backgroundTint="@color/surface_high" android:textColor="@color/text_primary" android:stateListAnimator="@null" />
+        <Button android:id="@+id/btnVoice" android:layout_width="52dp" android:layout_height="48dp" android:text="🎙" android:textSize="16sp" android:backgroundTint="@color/surface_high" android:textColor="@color/text_primary" android:layout_marginStart="6dp" android:stateListAnimator="@null" />
     </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/layoutButtons"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginTop="12dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp"
-        android:layout_marginBottom="18dp"
-        android:gravity="center"
-        app:layout_constraintTop_toBottomOf="@id/layoutChat"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
-
-            <Button
-                android:id="@+id/btnSpeak"
-                android:layout_width="0dp"
-                android:layout_height="44dp"
-                android:layout_weight="1"
-                android:text="🎙 Status"
-                android:textSize="12sp"
-                android:backgroundTint="@color/surface_high"
-                android:textColor="@color/text_primary"
-                android:layout_marginEnd="6dp"
-                android:stateListAnimator="@null" />
-
-            <Button
-                android:id="@+id/btnDecision"
-                android:layout_width="0dp"
-                android:layout_height="44dp"
-                android:layout_weight="1"
-                android:text="⚡ Decision"
-                android:textSize="12sp"
-                android:backgroundTint="@color/surface_high"
-                android:textColor="@color/text_primary"
-                android:layout_marginStart="6dp"
-                android.stateListAnimator="@null" />
+    <LinearLayout android:id="@+id/layoutButtons" android:layout_width="0dp" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="12dp" android:layout_marginStart="20dp" android:layout_marginEnd="20dp" android:layout_marginBottom="18dp" android:gravity="center" app:layout_constraintTop_toBottomOf="@id/layoutChat" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toBottomOf="parent">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="8dp">
+            <Button android:id="@+id/btnSpeak" android:layout_width="0dp" android:layout_height="44dp" android:layout_weight="1" android:text="🎙 Status" android:textSize="12sp" android:backgroundTint="@color/surface_high" android:textColor="@color/text_primary" android:layout_marginEnd="6dp" android:stateListAnimator="@null" />
+            <Button android:id="@+id/btnDecision" android:layout_width="0dp" android:layout_height="44dp" android:layout_weight="1" android:text="⚡ Decision" android:textSize="12sp" android:backgroundTint="@color/surface_high" android:textColor="@color/text_primary" android:layout_marginStart="6dp" android:stateListAnimator="@null" />
         </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
-
-            <Button
-                android:id="@+id/btnMemory"
-                android:layout_width="0dp"
-                android:layout_height="44dp"
-                android:layout_weight="1"
-                android:text="💾 Memory"
-                android:textSize="12sp"
-                android:backgroundTint="@color/surface_high"
-                android:textColor="@color/text_primary"
-                android:layout_marginEnd="6dp"
-                android:stateListAnimator="@null" />
-
-            <Button
-                android:id="@+id/btnAgents"
-                android:layout_width="0dp"
-                android:layout_height="44dp"
-                android:layout_weight="1"
-                android:text="🤖 Agents"
-                android:textSize="12sp"
-                android:backgroundTint="@color/surface_high"
-                android:textColor="@color/text_primary"
-                android:layout_marginStart="6dp"
-                android:stateListAnimator="@null" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="8dp">
+            <Button android:id="@+id/btnMemory" android:layout_width="0dp" android:layout_height="44dp" android:layout_weight="1" android:text="💾 Memory" android:textSize="12sp" android:backgroundTint="@color/surface_high" android:textColor="@color/text_primary" android:layout_marginEnd="6dp" android:stateListAnimator="@null" />
+            <Button android:id="@+id/btnAgents" android:layout_width="0dp" android:layout_height="44dp" android:layout_weight="1" android:text="🤖 Agents" android:textSize="12sp" android:backgroundTint="@color/surface_high" android:textColor="@color/text_primary" android:layout_marginStart="6dp" android:stateListAnimator="@null" />
         </LinearLayout>
-
-        <Button
-            android:id="@+id/btnProvider"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:text="AI Provider: DEMO"
-            android:textSize="12sp"
-            android:backgroundTint="@color/surface_high"
-            android:textColor="@color/text_primary"
-            android:stateListAnimator="@null" />
+        <Button android:id="@+id/btnProvider" android:layout_width="match_parent" android:layout_height="44dp" android:text="AI Provider: DEMO" android:textSize="12sp" android:backgroundTint="@color/surface_high" android:textColor="@color/text_primary" android:stateListAnimator="@null" />
     </LinearLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>
