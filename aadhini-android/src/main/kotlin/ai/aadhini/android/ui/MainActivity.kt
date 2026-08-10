@@ -1,9 +1,15 @@
 package ai.aadhini.android.ui
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.speech.RecognizerIntent
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import ai.aadhini.android.databinding.ActivityMainBinding
 import ai.aadhini.android.core.AadhiniCore
@@ -16,6 +22,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val core = AadhiniCore()
     private lateinit var webView: WebView
+
+    companion object {
+        private const val REQUEST_RECORD_AUDIO = 1001
+        private const val REQUEST_VOICE_INPUT = 1002
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +60,57 @@ class MainActivity : AppCompatActivity() {
         }
         binding.btnProvider.setOnClickListener {
             toggleProvider()
+        }
+        binding.btnSend.setOnClickListener {
+            sendTypedMessage()
+        }
+        binding.etChatInput.setOnEditorActionListener { _, _, _ ->
+            sendTypedMessage()
+            true
+        }
+        binding.btnVoice.setOnClickListener {
+            startVoiceInput()
+        }
+    }
+
+    private fun sendTypedMessage() {
+        val input = binding.etChatInput.text.toString().trim()
+        if (input.isEmpty()) return
+        binding.etChatInput.text?.clear()
+        simulateQuery(input)
+    }
+
+    private fun startVoiceInput() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                REQUEST_RECORD_AUDIO
+            )
+            return
+        }
+
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "Talk to Aadhini")
+        }
+        startActivityForResult(intent, REQUEST_VOICE_INPUT)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != REQUEST_VOICE_INPUT || resultCode != RESULT_OK) return
+
+        val spoken = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            ?.firstOrNull()
+            ?.trim()
+            .orEmpty()
+
+        if (spoken.isNotEmpty()) {
+            binding.etChatInput.setText(spoken)
+            simulateQuery(spoken)
         }
     }
 
