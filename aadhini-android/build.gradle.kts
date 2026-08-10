@@ -63,4 +63,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.airbnb.android:lottie:6.3.0")
+
+    // Real-time 3D renderer. gltfio-android provides the glTF 2.0 model loader.
+    implementation("com.google.android.filament:filament-android:1.74.0")
+    implementation("com.google.android.filament:gltfio-android:1.74.0")
+    implementation("com.google.android.filament:filament-utils-android:1.74.0")
 }
