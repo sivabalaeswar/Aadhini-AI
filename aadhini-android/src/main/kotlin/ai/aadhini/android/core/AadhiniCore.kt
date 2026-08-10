@@ -6,6 +6,7 @@ import ai.aadhini.android.ai.GeminiProvider
 import ai.aadhini.core.context.Context
 import ai.aadhini.core.decision.Decision
 import ai.aadhini.core.engine.BasicContextEngine
+import ai.aadhini.core.engine.BasicConversationEngine
 import ai.aadhini.core.engine.BasicDecisionEngine
 import ai.aadhini.core.engine.BasicIntentEngine
 import ai.aadhini.core.engine.BasicMemoryEngine
@@ -26,6 +27,7 @@ class AadhiniCore {
     private val decisionEngine = BasicDecisionEngine()
     private val memoryEngine = BasicMemoryEngine()
     private val contextEngine = BasicContextEngine()
+    private val conversationEngine = BasicConversationEngine()
 
     private var lastIntent: Intent? = null
     private var lastDecision: Decision? = null
@@ -37,7 +39,9 @@ class AadhiniCore {
         lastDecision = decisionEngine.decide(intent)
         lastContext = contextEngine.update(input, intent)
         memoryEngine.remember(input)
-        return providerManager.process(input)
+
+        val conversationResponse = conversationEngine.respond(input, intent)
+        return conversationResponse ?: providerManager.process(input)
     }
 
     fun getLastIntent(): Intent? {
