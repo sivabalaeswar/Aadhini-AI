@@ -1,3 +1,7 @@
 package ai.aadhini.core.engine
 
-interface ConversationEngine
+import ai.aadhini.core.intent.Intent
+
+interface ConversationEngine {
+    fun respond(input: String, intent: Intent): String?
+}
