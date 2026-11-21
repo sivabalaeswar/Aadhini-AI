@@ -163,9 +163,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 val mode = health.optString("mode", "unknown")
                 val configured = health.optBoolean("gemini_configured", false)
                 binding.tvStatus.text =
-                    "Aadhini Core: ONLINE\nMode: $mode\nGemini: \${if (configured) "CONFIGURED" else "NOT CONFIGURED"}"
+                    "Aadhini Core: ONLINE\nMode: $mode\nGemini: ${if (configured) "CONFIGURED" else "NOT CONFIGURED"}"
             } catch (error: Exception) {
-                binding.tvStatus.text = "Aadhini Core: OFFLINE\nStart the Termux Core Runtime on port 8766.\n\${error.message ?: "Connection failed."}"
+                binding.tvStatus.text = "Aadhini Core: OFFLINE\nStart the Termux Core Runtime on port 8766.\n${error.message ?: "Connection failed."}"
             }
         }
     }
