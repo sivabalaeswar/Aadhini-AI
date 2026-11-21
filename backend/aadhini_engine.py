@@ -285,6 +285,21 @@ class Handler(BaseHTTPRequestHandler):
                 item_id = add_memory(content, str(data.get("category", "Important")), bool(data.get("pinned", False)))
                 self.send_json(200, {"id": item_id, "saved": True})
                 return
+            if self.path == "/memory/forget":
+                memory_id = int(data.get("id", 0))
+                with connect() as conn:
+                    cur = conn.execute("DELETE FROM memory_items WHERE id=?", (memory_id,))
+                    deleted = cur.rowcount > 0
+                self.send_json(200, {"deleted": deleted, "id": memory_id})
+                return
+            if self.path == "/memory/pin":
+                memory_id = int(data.get("id", 0))
+                pinned = 1 if data.get("pinned") else 0
+                with connect() as conn:
+                    cur = conn.execute("UPDATE memory_items SET pinned=? WHERE id=?", (pinned, memory_id))
+                    updated = cur.rowcount > 0
+                self.send_json(200, {"updated": updated, "id": memory_id, "pinned": bool(pinned)})
+                return
             if self.path == "/chat":
                 message = str(data.get("message", "")).strip()
                 if not message:
