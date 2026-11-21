@@ -43,6 +43,15 @@ class AadhiniCoreClient(
 
     fun memories(): JSONObject = get("/memory/list")
 
+    fun forget(memoryId: Long): JSONObject =
+        post("/memory/forget", JSONObject().put("id", memoryId))
+
+    fun pin(memoryId: Long, pinned: Boolean): JSONObject =
+        post(
+            "/memory/pin",
+            JSONObject().put("id", memoryId).put("pinned", pinned)
+        )
+
     private fun get(path: String): JSONObject {
         val connection = open(path, "GET")
         return readResponse(connection)
