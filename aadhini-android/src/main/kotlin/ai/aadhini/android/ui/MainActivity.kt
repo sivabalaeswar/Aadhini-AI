@@ -176,9 +176,16 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         stopAvatarTalking()
         setAvatarState("THINKING")
         lifecycleScope.launch {
-            val response = withContext(Dispatchers.IO) { core.process(input) }
-            binding.tvStatus.text = buildStateReport(response)
-            speak(response)
+            try {
+                val response = withContext(Dispatchers.IO) { core.process(input) }
+                binding.tvStatus.text = buildStateReport(response)
+                speak(response)
+            } catch (error: Exception) {
+                binding.tvStatus.text =
+                    "Aadhini Core is offline or unreachable.\n\nStart the Termux Core Runtime on port 8766 and try again.\n\n" + (error.message ?: "Connection failed.")
+                stopAvatarTalking()
+                setAvatarState("ERROR")
+            }
         }
     }
 
