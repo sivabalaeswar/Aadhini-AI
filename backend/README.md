@@ -49,6 +49,12 @@ Protect it:
 chmod 600 ~/.aadhini_secrets/env
 ~~~
 
+If you already keep the Gemini key in NiRa's existing Termux secret file, do not copy the key. Point Aadhini to that file instead:
+
+~~~bash
+export AADHINI_SECRET_FILE="$HOME/.nira_secrets/env"
+~~~
+
 Start the engine:
 
 ~~~bash
