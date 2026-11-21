@@ -14,7 +14,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import ai.aadhini.android.databinding.ActivityMainBinding
-import ai.aadhini.android.core.AadhiniCore
+import ai.aadhini.core.engine.AadhiniEngine
+import ai.aadhini.platform.adapter.AadhiniCoreClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -23,7 +24,8 @@ import java.util.Locale
 class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private lateinit var binding: ActivityMainBinding
-    private val core = AadhiniCore()
+    private val coreClient = AadhiniCoreClient()
+    private val core = AadhiniEngine(coreClient)
     private lateinit var webView: WebView
     private lateinit var textToSpeech: TextToSpeech
     private var ttsReady = false
@@ -40,7 +42,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         textToSpeech = TextToSpeech(this, this)
         setupWebView()
         setupUI()
-        updateProviderButton()
+        binding.btnProvider.text = "CORE STATUS"
     }
 
     override fun onInit(status: Int) {
@@ -111,7 +113,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         binding.btnDecision.setOnClickListener { simulateQuery("Run decision engine") }
         binding.btnMemory.setOnClickListener { showMemoryState() }
         binding.btnAgents.setOnClickListener { simulateQuery("List active agents") }
-        binding.btnProvider.setOnClickListener { toggleProvider() }
+        binding.btnProvider.setOnClickListener { checkCoreStatus() }
         binding.btnSend.setOnClickListener { sendTypedMessage() }
         binding.etChatInput.setOnEditorActionListener { _, _, _ -> sendTypedMessage(); true }
         binding.btnVoice.setOnClickListener { startVoiceInput() }
@@ -153,22 +155,19 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun toggleProvider() {
-        val current = core.getActiveProvider()
-        val next = if (current == "demo") "core" else "demo"
-        if (core.setProvider(next)) {
-            updateProviderButton()
-            val message = "AI Provider switched to ${next.uppercase()}"
-            binding.tvStatus.text = message
-            speak(message)
-        } else {
-            binding.tvStatus.text = "Provider unavailable: ${next.uppercase()}"
-            setAvatarState("ERROR")
+    private fun checkCoreStatus() {
+        binding.tvStatus.text = "Checking Aadhini Core..."
+        lifecycleScope.launch {
+            try {
+                val health = withContext(Dispatchers.IO) { coreClient.health() }
+                val mode = health.optString("mode", "unknown")
+                val configured = health.optBoolean("gemini_configured", false)
+                binding.tvStatus.text =
+                    "Aadhini Core: ONLINE\nMode: $mode\nGemini: \${if (configured) "CONFIGURED" else "NOT CONFIGURED"}"
+            } catch (error: Exception) {
+                binding.tvStatus.text = "Aadhini Core: OFFLINE\nStart the Termux Core Runtime on port 8766.\n\${error.message ?: "Connection failed."}"
+            }
         }
-    }
-
-    private fun updateProviderButton() {
-        binding.btnProvider.text = "AI Engine: ${core.getActiveProvider().uppercase()}"
     }
 
     private fun simulateQuery(input: String) {
@@ -209,7 +208,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val decisionLabel = core.getLastDecisionType()
         val contextLabel = core.getLastContextType()
         val memoryCount = core.getMemoryCount()
-        val provider = core.getActiveProvider().uppercase()
+        val provider = core.getProviderName()
         return "$response\n\nIntent   : $intentLabel\nDecision : $decisionLabel\nContext  : $contextLabel\nMemory   : $memoryCount\nProvider : $provider"
     }
 
