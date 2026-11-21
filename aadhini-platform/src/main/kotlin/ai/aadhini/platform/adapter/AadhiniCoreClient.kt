@@ -13,7 +13,7 @@ import java.net.URL
  * The Core Runtime owns prompts, conversation history, memory and model routing.
  */
 class AadhiniCoreClient(
-    private val baseUrl: String = "http://127.0.0.1:8765",
+    private val baseUrl: String = "http://127.0.0.1:8766",
     private val connectTimeoutMs: Int = 4_000,
     private val readTimeoutMs: Int = 30_000
 ) : AIProvider {
