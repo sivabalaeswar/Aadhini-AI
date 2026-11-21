@@ -95,6 +95,22 @@ Categories: Recent, Important, Patterns.
 
 Returns saved memory cards for review.
 
+### POST /memory/forget
+
+~~~json
+{"id":12}
+~~~
+
+Deletes the selected saved memory item.
+
+### POST /memory/pin
+
+~~~json
+{"id":12,"pinned":true}
+~~~
+
+Pins or unpins a saved memory item.
+
 ## Design and privacy boundaries
 
 - API keys stay in Termux, not in Android BuildConfig or the APK.
