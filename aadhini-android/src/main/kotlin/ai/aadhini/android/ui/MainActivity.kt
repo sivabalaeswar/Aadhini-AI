@@ -155,7 +155,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun toggleProvider() {
         val current = core.getActiveProvider()
-        val next = if (current == "demo") "gemini" else "demo"
+        val next = if (current == "demo") "core" else "demo"
         if (core.setProvider(next)) {
             updateProviderButton()
             val message = "AI Provider switched to ${next.uppercase()}"
@@ -168,7 +168,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun updateProviderButton() {
-        binding.btnProvider.text = "AI Provider: ${core.getActiveProvider().uppercase()}"
+        binding.btnProvider.text = "AI Engine: ${core.getActiveProvider().uppercase()}"
     }
 
     private fun simulateQuery(input: String) {
