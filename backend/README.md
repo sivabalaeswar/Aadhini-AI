@@ -127,4 +127,4 @@ The runtime calls one primary model first and tries one fallback only if the pri
 
 ## Current prototype status
 
-The Python runtime and Platform HTTP adapter are implemented as a separate prototype branch. Android UI integration, startup orchestration, real-device testing and streaming are follow-up steps. Do not merge this branch into main until those checks pass.
+The Python runtime and Platform HTTP adapter are implemented on a separate prototype branch. The Android chat pipeline now routes through the Core module and Platform adapter; the Core Status button checks the Termux service. Full memory/mode UI controls, Termux auto-start, real-device APK build/validation and streaming remain follow-up steps. Do not merge this branch into main until those checks pass.
