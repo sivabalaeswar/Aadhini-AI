@@ -58,7 +58,7 @@ python ~/aadhini_core/app/aadhini_engine.py
 Check it from another Termux session:
 
 ~~~bash
-curl -sS http://127.0.0.1:8765/health
+curl -sS http://127.0.0.1:8766/health
 ~~~
 
 ## API
