@@ -173,6 +173,11 @@ def extract_explicit_memory(message: str) -> tuple[str, str] | None:
     if not matched:
         return None
     fact = text.replace(matched, "", 1).strip(" :-,!.?\n\t")
+    # Remove common Tamil framing phrases left before the explicit remember command.
+    for prefix in ("இந்த விஷயத்தை", "இந்த தகவலை", "இந்தத் தகவலை", "இதை", "இதனை", "இதையும்"):
+        if fact.startswith(prefix):
+            fact = fact[len(prefix):].lstrip(" :-,!.?\n\t")
+            break
     if len(fact) < 4 or len(fact) > 500:
         return None
     # Never automatically persist credentials, financial identifiers, or health/intimate details.
