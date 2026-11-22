@@ -15,7 +15,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import ai.aadhini.android.databinding.ActivityMainBinding
 import ai.aadhini.core.engine.AadhiniEngine
-import ai.aadhini.platform.adapter.AadhiniCoreClient
+import ai.aadhini.platform.adapter.OfflineTamilProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -24,8 +24,7 @@ import java.util.Locale
 class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private lateinit var binding: ActivityMainBinding
-    private val coreClient = AadhiniCoreClient()
-    private val core = AadhiniEngine(coreClient)
+    private val core = AadhiniEngine(OfflineTamilProvider())
     private lateinit var webView: WebView
     private lateinit var textToSpeech: TextToSpeech
     private var ttsReady = false
@@ -42,7 +41,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         textToSpeech = TextToSpeech(this, this)
         setupWebView()
         setupUI()
-        binding.btnProvider.text = "CORE STATUS"
+        binding.btnProvider.text = "OFFLINE MODE • NO API BILLING"
     }
 
     override fun onInit(status: Int) {
@@ -156,18 +155,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun checkCoreStatus() {
-        binding.tvStatus.text = "Checking Aadhini Core..."
-        lifecycleScope.launch {
-            try {
-                val health = withContext(Dispatchers.IO) { coreClient.health() }
-                val mode = health.optString("mode", "unknown")
-                val configured = health.optBoolean("gemini_configured", false)
-                binding.tvStatus.text =
-                    "Aadhini Core: ONLINE\nMode: $mode\nGemini: ${if (configured) "CONFIGURED" else "NOT CONFIGURED"}"
-            } catch (error: Exception) {
-                binding.tvStatus.text = "Aadhini Core: OFFLINE\nStart the Termux Core Runtime on port 8766.\n${error.message ?: "Connection failed."}"
-            }
-        }
+        binding.tvStatus.text =
+            "Aadhini: READY\nMode: OFFLINE / ZERO API COST\nProvider: On-device rule-based Tamil baseline\nVoice: Android speech services\n\nNo API key or paid cloud request is used in this build."
     }
 
     private fun simulateQuery(input: String) {
