@@ -9,6 +9,7 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -44,6 +45,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         binding.tvAppName.text = "⬡ AaNira v01"
         binding.tvSubtitle.text = "Live 3D AI Companion • First Avatar Milestone"
         binding.btnProvider.text = "3D AVATAR PROTOTYPE • TEXT INPUT"
+        binding.btnVoice.visibility = View.GONE
     }
 
     override fun onInit(status: Int) {
