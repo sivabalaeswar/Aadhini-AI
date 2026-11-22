@@ -19,7 +19,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:radial-grad
  const canvas=document.getElementById('stage'), stateLabel=document.getElementById('state');
  const scene=new THREE.Scene(); scene.fog=new THREE.Fog(0x0b1020,7,16);
  const camera=new THREE.PerspectiveCamera(36,1,.1,50); camera.position.set(0,.82,6.4); camera.lookAt(0,.12,0);
- const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,1.7)); renderer.outputColorSpace=THREE.SRGBColorSpace;
+ const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,1.25)); renderer.outputColorSpace=THREE.SRGBColorSpace;
  scene.add(new THREE.HemisphereLight(0xc9d9ff,0x3b244c,2.1));
  const key=new THREE.DirectionalLight(0xffe4d4,3.0); key.position.set(-3,5,5); scene.add(key);
  const rim=new THREE.PointLight(0xb58aff,24,12); rim.position.set(3,2, -2); scene.add(rim);
@@ -85,8 +85,15 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:radial-grad
  window.aaniraKiss=function(){window.aaniraSetExpression('romantic');mouth.scale.set(.12,.11,.04);setTimeout(()=>mouth.scale.set(.19,.065,.035),700);};
  function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
  new ResizeObserver(resize).observe(canvas);resize();
+ let frameCount=0,lastFpsTime=performance.now(),fps=0,renderPaused=document.hidden;
+ document.addEventListener('visibilitychange',()=>{renderPaused=document.hidden;if(!renderPaused)requestAnimationFrame(animate);});
+ canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();stateLabel.textContent='RENDERER LOST';});
+ canvas.addEventListener('webglcontextrestored',()=>{stateLabel.textContent='RENDERER RESTORED';});
  function animate(t){
+  if(renderPaused)return;
   requestAnimationFrame(animate);
+  frameCount++;
+  if(t-lastFpsTime>=1000){fps=Math.round(frameCount*1000/(t-lastFpsTime));frameCount=0;lastFpsTime=t;stateLabel.textContent=expression.toUpperCase()+' · '+fps+' FPS';}
   const sec=t*.001;
   root.position.y=Math.sin(sec*1.25)*.035;
   head.rotation.y=Math.sin(sec*.48)*.07 + gazeX*.08;
