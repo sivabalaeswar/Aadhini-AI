@@ -41,7 +41,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         textToSpeech = TextToSpeech(this, this)
         setupWebView()
         setupUI()
-        binding.btnProvider.text = "OFFLINE MODE • NO API BILLING"
+        binding.tvAppName.text = "⬡ AaNira v01"
+        binding.tvSubtitle.text = "Live 3D AI Companion • First Avatar Milestone"
+        binding.btnProvider.text = "3D AVATAR PROTOTYPE • TEXT INPUT"
     }
 
     override fun onInit(status: Int) {
@@ -55,17 +57,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             ttsReady = result != TextToSpeech.LANG_MISSING_DATA && result != TextToSpeech.LANG_NOT_SUPPORTED
             textToSpeech.setSpeechRate(0.95f)
             textToSpeech.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                override fun onStart(utteranceId: String?) {
-                    runOnUiThread { setAvatarState("SPEAKING") }
-                }
-
-                override fun onDone(utteranceId: String?) {
-                    runOnUiThread { setAvatarState("IDLE") }
-                }
-
-                override fun onError(utteranceId: String?) {
-                    runOnUiThread { setAvatarState("IDLE") }
-                }
+                override fun onStart(utteranceId: String?) = runOnUiThread { setAvatarState("SPEAKING") }
+                override fun onDone(utteranceId: String?) = runOnUiThread { setAvatarState("IDLE") }
+                override fun onError(utteranceId: String?) = runOnUiThread { setAvatarState("IDLE") }
             })
         }
     }
@@ -73,50 +67,38 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun setupWebView() {
         webView = binding.webViewAvatar
         webView.settings.javaScriptEnabled = true
+        webView.settings.domStorageEnabled = true
         webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                view?.evaluateJavascript(
-                    """
-                    (function() {
-                        window.avatarSetState = function(state) {
-                            document.body.dataset.avatarState = state;
-                            const ring = document.querySelector('.glow-ring');
-                            if (ring) {
-                                ring.style.animationDuration = state === 'THINKING' ? '0.8s' : '2s';
-                                ring.style.transform = state === 'LISTENING' ? 'scale(1.04)' : 'scale(1)';
-                            }
-                            if (state === 'SPEAKING') avatarTalk(true);
-                            else avatarTalk(false);
-                        };
-                        window.avatarStopTalking = function() { avatarTalk(false); };
-                        window.avatarSetState('IDLE');
-                    })();
-                    """.trimIndent(), null
-                )
+                setAvatarState("IDLE")
             }
         }
-        webView.loadUrl("file:///android_asset/avatar.html")
+        webView.loadUrl("file:///android_asset/aanira_v01_live3d.html")
     }
 
     private fun setAvatarState(state: String) {
         if (::webView.isInitialized) {
-            webView.evaluateJavascript("window.avatarSetState && window.avatarSetState('$state');", null)
+            webView.evaluateJavascript("window.aaniraSetState && window.aaniraSetState('$state'.toLowerCase());", null)
+        }
+    }
+
+    private fun setExpression(expression: String) {
+        if (::webView.isInitialized) {
+            webView.evaluateJavascript("window.aaniraSetExpression && window.aaniraSetExpression('$expression');", null)
         }
     }
 
     private fun stopAvatarTalking() {
-        if (::webView.isInitialized) {
-            webView.evaluateJavascript("window.avatarStopTalking && window.avatarStopTalking();", null)
-        }
+        // V01 is intentionally text-first; lip-sync will be added after the live avatar milestone.
     }
 
     private fun setupUI() {
-        binding.btnSpeak.setOnClickListener { simulateQuery("Chief, status report") }
-        binding.btnDecision.setOnClickListener { simulateQuery("Run decision engine") }
+        binding.btnSpeak.setOnClickListener { simulateQuery("Give me a happy status") }
+        binding.btnDecision.setOnClickListener { simulateQuery("I am thinking about our next step") }
         binding.btnMemory.setOnClickListener { showMemoryState() }
-        binding.btnAgents.setOnClickListener { simulateQuery("List active agents") }
-        binding.btnProvider.setOnClickListener { checkCoreStatus() }
+        binding.btnAgents.setOnClickListener { simulateQuery("Hello, how are you?") }
+        binding.btnProvider.setOnClickListener { setExpression("neutral") }
         binding.btnSend.setOnClickListener { sendTypedMessage() }
         binding.etChatInput.setOnEditorActionListener { _, _, _ -> sendTypedMessage(); true }
         binding.btnVoice.setOnClickListener { startVoiceInput() }
@@ -138,7 +120,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ta-IN")
-            putExtra(RecognizerIntent.EXTRA_PROMPT, "ஆதினியிடம் பேசுங்கள்")
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "AaNira-விடம் பேசுங்கள்")
         }
         startActivityForResult(intent, REQUEST_VOICE_INPUT)
     }
@@ -154,72 +136,54 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (spoken.isNotEmpty()) {
             binding.etChatInput.setText(spoken)
             simulateQuery(spoken)
-        } else {
-            setAvatarState("IDLE")
-        }
+        } else setAvatarState("IDLE")
     }
 
     private fun checkCoreStatus() {
-        binding.tvStatus.text =
-            "Aadhini: READY\nMode: OFFLINE / ZERO API COST\nProvider: On-device rule-based Tamil baseline\nVoice: Android speech services\n\nNo API key or paid cloud request is used in this build."
+        binding.tvStatus.text = "AaNira v01 • First milestone\n\nLive procedural 3D character prototype.\nText-first interaction.\nAI provider integration is not part of this milestone."
+    }
+
+    private fun detectExpression(input: String): String {
+        val text = input.lowercase()
+        return when {
+            listOf("romantic", "love", "kiss", "baby", "chellam", "காதல்", "செல்லம்", "முத்தம்").any { it in text } -> "romantic"
+            listOf("sad", "sorry", "miss you", "கவலை", "வருத்தம்").any { it in text } -> "shy"
+            listOf("happy", "great", "super", "சந்தோஷம்", "அருமை", "சூப்பர்").any { it in text } -> "happy"
+            listOf("think", "why", "எப்படி", "யோசனை").any { it in text } -> "thinking"
+            else -> "neutral"
+        }
     }
 
     private fun simulateQuery(input: String) {
-        binding.tvStatus.text = "Processing..."
+        binding.tvStatus.text = "AaNira is reacting..."
         stopAvatarTalking()
-        setAvatarState("THINKING")
+        setExpression(detectExpression(input))
         lifecycleScope.launch {
             try {
                 val response = withContext(Dispatchers.IO) { core.process(input) }
-                binding.tvStatus.text = buildStateReport(response)
-                speak(response)
+                binding.tvStatus.text = "$response\n\nAaNira v01 • Procedural live 3D avatar"
             } catch (error: Exception) {
-                binding.tvStatus.text =
-                    "Aadhini Core is offline or unreachable.\n\nStart the Termux Core Runtime on port 8766 and try again.\n\n" + (error.message ?: "Connection failed.")
-                stopAvatarTalking()
-                setAvatarState("ERROR")
+                binding.tvStatus.text = "Local demo response unavailable.\n\n" + (error.message ?: "Unknown error")
+                setExpression("thinking")
             }
         }
     }
 
     private fun speak(text: String) {
-        if (!ttsReady || text.isBlank()) {
-            stopAvatarTalking()
-            setAvatarState("IDLE")
-            return
-        }
-        stopAvatarTalking()
-        textToSpeech.speak(
-            text,
-            TextToSpeech.QUEUE_FLUSH,
-            null,
-            "aadhini-response-${System.nanoTime()}"
-        )
+        // Voice output is deliberately deferred: V01 focuses on typed input and visible reactions.
     }
 
-    private fun buildStateReport(response: String): String {
-        val intentLabel = core.getLastIntent()?.type?.name ?: "UNKNOWN"
-        val decisionLabel = core.getLastDecisionType()
-        val contextLabel = core.getLastContextType()
-        val memoryCount = core.getMemoryCount()
-        val provider = core.getProviderName()
-        return "$response\n\nIntent   : $intentLabel\nDecision : $decisionLabel\nContext  : $contextLabel\nMemory   : $memoryCount\nProvider : $provider"
-    }
+    private fun buildStateReport(response: String): String = response
 
     private fun showMemoryState() {
         val memories = core.getMemories()
-        val status = if (memories.isEmpty()) {
-            "Memory Engine\n\nNo memories stored yet."
-        } else {
-            val recent = memories.takeLast(5).asReversed().joinToString("\n") { "• ${it.content}" }
-            "Memory Engine\n\nStored: ${memories.size}\n\n$recent"
-        }
+        val status = if (memories.isEmpty()) "Memory Engine\n\nNo memories stored yet."
+        else "Memory Engine\n\nStored: ${memories.size}"
         binding.tvStatus.text = status
-        speak(status)
+        setExpression("thinking")
     }
 
     override fun onDestroy() {
-        stopAvatarTalking()
         if (::textToSpeech.isInitialized) {
             textToSpeech.stop()
             textToSpeech.shutdown()
