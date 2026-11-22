@@ -91,6 +91,15 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    private fun triggerAvatarAction(action: String) {
+        if (!::webView.isInitialized) return
+        val function = when (action) {
+            "kiss" -> "aaniraKiss"
+            "wink" -> "aaniraWink"
+            else -> return
+        }
+        webView.evaluateJavascript("window.$function && window.$function();", null)
+    }
     private fun stopAvatarTalking() {
         // V01 is intentionally text-first; lip-sync will be added after the live avatar milestone.
     }
@@ -159,7 +168,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun simulateQuery(input: String) {
         binding.tvStatus.text = "AaNira is reacting..."
         stopAvatarTalking()
+        val normalized = input.lowercase()
         setExpression(detectExpression(input))
+        when {
+            listOf("blow a kiss", "send a kiss", "kiss me", "முத்தம் கொடு", "kiss").any { it in normalized } -> triggerAvatarAction("kiss")
+            listOf("wink", "கண் சிமிட்டு", "கண்ணட").any { it in normalized } -> triggerAvatarAction("wink")
+        }
         lifecycleScope.launch {
             try {
                 val response = withContext(Dispatchers.IO) { core.process(input) }
