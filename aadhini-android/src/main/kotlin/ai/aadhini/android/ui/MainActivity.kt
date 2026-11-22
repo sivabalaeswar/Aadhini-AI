@@ -47,7 +47,11 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onInit(status: Int) {
         ttsReady = status == TextToSpeech.SUCCESS
         if (ttsReady) {
-            val result = textToSpeech.setLanguage(Locale.getDefault())
+            val tamilResult = textToSpeech.setLanguage(Locale.forLanguageTag("ta-IN"))
+            val result = if (tamilResult == TextToSpeech.LANG_MISSING_DATA ||
+                tamilResult == TextToSpeech.LANG_NOT_SUPPORTED) {
+                textToSpeech.setLanguage(Locale.getDefault())
+            } else tamilResult
             ttsReady = result != TextToSpeech.LANG_MISSING_DATA && result != TextToSpeech.LANG_NOT_SUPPORTED
             textToSpeech.setSpeechRate(0.95f)
             textToSpeech.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
@@ -133,7 +137,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         setAvatarState("LISTENING")
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_PROMPT, "Talk to Aadhini")
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ta-IN")
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "ஆதினியிடம் பேசுங்கள்")
         }
         startActivityForResult(intent, REQUEST_VOICE_INPUT)
     }
