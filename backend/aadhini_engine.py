@@ -160,6 +160,43 @@ def add_memory(content: str, category: str = "Important", pinned: bool = False) 
         return int(cur.lastrowid)
 
 
+def extract_explicit_memory(message: str) -> tuple[str, str] | None:
+    """Conservative opt-in memory extraction. Only save facts the user explicitly asks us to remember."""
+    text = message.strip()
+    lowered = text.casefold()
+    triggers = (
+        "remember that", "remember this", "please remember", "save this",
+        "நினைவில் வைத்துக்கொள்", "நினைவில் வைத்துக்கோ", "நினைவில் வை",
+        "மறந்துவிடாதே", "மறக்காதே", "ஞாபகம் வை", "ஞாபகத்தில் வை",
+    )
+    matched = next((trigger for trigger in triggers if trigger in lowered), None)
+    if not matched:
+        return None
+    fact = text.replace(matched, "", 1).strip(" :-,!.?\n\t")
+    if len(fact) < 4 or len(fact) > 500:
+        return None
+    # Never automatically persist credentials, financial identifiers, or health/intimate details.
+    sensitive_terms = (
+        "password", "api key", "secret", "otp", "பாஸ்வேர்ட்", "கடவுச்சொல்",
+        "account number", "card number", "aadhaar", "ஆதார்", "medical",
+        "medicine", "மருந்து", "நோய்", "உடல்நலம்", "diagnosis", "வங்கி",
+        "bank account", "கடன்", "loan", "salary", "சம்பளம்",
+    )
+    if any(term in fact.casefold() for term in sensitive_terms):
+        return None
+    return ("Important", fact)
+
+
+def save_memory_if_new(content: str, category: str) -> int | None:
+    with connect() as conn:
+        row = conn.execute(
+            "SELECT id FROM memory_items WHERE lower(content)=lower(?) LIMIT 1", (content,)
+        ).fetchone()
+        if row:
+            return None
+    return add_memory(content, category)
+
+
 def build_system_instruction(mode: str, memories: list[str]) -> str:
     mode_guidance = MODE_PROMPTS.get(mode, MODE_PROMPTS["companion"])
     memory_text = "\n".join(f"- {item}" for item in memories) or "No relevant saved memories."
@@ -309,9 +346,12 @@ class Handler(BaseHTTPRequestHandler):
                 reply, model, latency_ms, memory_count = generate_reply(message, mode)
                 save_message("user", message, mode)
                 save_message("assistant", reply, mode)
+                candidate = extract_explicit_memory(message)
+                memory_id = save_memory_if_new(candidate[1], candidate[0]) if candidate else None
                 self.send_json(200, {
                     "reply": reply, "mode": mode, "provider": "gemini", "model": model,
                     "latency_ms": latency_ms, "memory_used": memory_count,
+                    "memory_saved": memory_id is not None, "memory_id": memory_id,
                 })
                 return
             self.send_json(404, {"error": "Not found"})
