@@ -80,3 +80,28 @@ Decision: Android APK shell + embedded lightweight 3D companion renderer.
 ## Next concrete task
 
 Inspect the actual v02 prototype entry point and build setup, then implement only the smallest Android/WebView shell proof on this branch. Do not change the existing v02 source until its structure and current state have been inspected.
+
+
+## Repository inspection update — 2026-11-23
+
+The v02 branch already contains an Android application module and a WebView-hosted Three.js procedural avatar. Therefore, the first milestone is not a new WebView shell; it is hardening and measuring the existing implementation.
+
+Verified existing files:
+- `aadhini-android/src/main/kotlin/ai/aadhini/android/ui/MainActivity.kt`
+- `aadhini-android/src/main/assets/aanira_v01_live3d.html`
+- `aadhini-android/build.gradle.kts`
+- `.github/workflows/aanira-v01-android-build.yml`
+
+Changes made on this isolated branch:
+- WebView now reports a renderer-process termination in the app status instead of silently failing.
+- WebView is paused/resumed with the Android Activity lifecycle and stopped/destroyed during Activity teardown.
+- Zoom controls are disabled for the immersive companion surface.
+- Three.js renderer pixel ratio is capped at 1.25 to reduce fill-rate and memory pressure on mobile.
+- The animation loop pauses while the page is hidden and resumes when visible.
+- WebGL context-loss and context-restoration events are surfaced in the status label.
+- A branch-specific GitHub Actions workflow was added to build and upload a debug APK.
+
+Not yet verified:
+- No successful CI run or APK artifact has been observed yet.
+- Runtime stability, frame rate, and thermal behaviour still require installation and testing on the Motorola Edge 60 Pro.
+- The current avatar remains the existing procedural prototype, not the final Camilia model.
