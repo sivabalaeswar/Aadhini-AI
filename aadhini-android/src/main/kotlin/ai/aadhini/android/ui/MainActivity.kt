@@ -70,10 +70,19 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         webView = binding.webViewAvatar
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
+        webView.settings.allowFileAccess = true
+        webView.settings.setSupportZoom(false)
+        webView.settings.builtInZoomControls = false
+        webView.settings.displayZoomControls = false
         webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 setAvatarState("IDLE")
+            }
+
+            override fun onRenderProcessGone(view: WebView?, detail: android.webkit.RenderProcessGoneDetail?): Boolean {
+                binding.tvStatus.text = "3D renderer stopped unexpectedly. Return to Aadhini and reload the companion."
+                return true
             }
         }
         webView.loadUrl("file:///android_asset/aanira_v01_live3d.html")
@@ -199,10 +208,26 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         setExpression("thinking")
     }
 
+    override fun onPause() {
+        if (::webView.isInitialized) webView.onPause()
+        super.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::webView.isInitialized) webView.onResume()
+    }
+
     override fun onDestroy() {
         if (::textToSpeech.isInitialized) {
             textToSpeech.stop()
             textToSpeech.shutdown()
+        }
+        if (::webView.isInitialized) {
+            webView.stopLoading()
+            webView.loadUrl("about:blank")
+            webView.removeAllViews()
+            webView.destroy()
         }
         super.onDestroy()
     }
