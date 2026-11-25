@@ -1,19 +1,23 @@
-# Camilia Android runtime model
+# Aadhini 3D model asset
 
-The current Three.js WebView avatar loader expects:
+The Android WebView and Filament renderers use the same asset path:
 
-`aadhini-android/src/main/assets/models/camilia.glb`
+`aadhini-android/src/main/assets/models/aadhini.glb`
 
-The GLB is not present yet. Do not rename the previous placeholder `aadhini_avatar.glb` to this path unless it is actually the validated Camilia export.
+The GLB is not bundled in this source commit. Add the validated model at this exact path before expecting the real character to appear in the APK.
 
-Requirements before adding the model:
+Asset validation completed on the prepared GLB:
+- glTF 2.0 binary container
+- 10 meshes, 955 nodes, 1 skin
+- 50 embedded images and 59 texture references
+- 0 animation clips (unwanted source clip removed)
+- 1,829 morph-target entries reported by the source GLB inspection
+- Required extension: `KHR_draco_mesh_compression`
 
-- glTF 2.0 / GLB
-- Full Camilia geometry, materials, and embedded textures
-- Original skeleton and skin weights preserved
-- Facial morph targets/blendshapes retained and tested
-- Mobile-appropriate geometry and texture sizes
-- Correct scale, orientation, and neutral pose
-- Animation clips can be added later; the source FBX was previously inspected as having no embedded animation clips
+Important runtime check:
+- The GLB requires Draco mesh decoding.
+- Confirm the target renderer supports Draco before shipping this model. The current Filament renderer must be tested on-device; do not assume successful decoding from a successful APK build.
+- Keep original materials, textures, skinning, and morph targets intact.
+- Do not add unrelated animation clips. Drive expressions and speech from Aadhini's own state/morph controls.
 
-The source FBX is approximately 383 MiB and must not be loaded directly by the Android app or committed to this assets directory. Follow `docs/avatars/CAMILIA_ANDROID_ASSET_PIPELINE.md` for conversion and validation.
+The source FBX and working files do not belong in the Android assets directory. Only the optimized, validated GLB should be bundled.
