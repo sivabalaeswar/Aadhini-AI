@@ -13,7 +13,7 @@ import com.google.android.filament.utils.Utils
 import java.nio.ByteBuffer
 
 /**
- * Realtime Filament renderer for Aadhini's future 3D avatar.
+ * Realtime Filament renderer for Aadhini's 3D avatar.
  *
  * The renderer deliberately falls back to an empty scene when the model asset
  * is not present. This keeps the current WebView avatar as the safe UI fallback
@@ -22,7 +22,7 @@ import java.nio.ByteBuffer
 class FilamentAvatarRenderer(private val context: Context) : AvatarRenderer {
 
     companion object {
-        private const val MODEL_ASSET = "models/aadhini_avatar.glb"
+        private const val MODEL_ASSET = "models/aadhini.glb"
 
         init {
             Utils.init()
