@@ -27,11 +27,11 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/
  const mat=(color,rough=.68,metal=0)=>new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal});
  const skin=mat(0xe9b995,.72), skinLight=mat(0xf2c7a6), hair=mat(0x21131b,.38), hairHi=mat(0x38202b,.4), iris=mat(0x68402e,.35), black=mat(0x160f18,.25), white=mat(0xfff5ec,.3), lip=mat(0x9d465e,.5), blush=new THREE.MeshBasicMaterial({color:0xe97883,transparent:true,opacity:.28}), outfit=mat(0x55427c,.48,.08), gold=mat(0xd6ae73,.3,.65);
  const root=new THREE.Group(); scene.add(root);
- // Camilia runtime slot: the procedural character remains a safe fallback until
- // the validated mobile asset is bundled at android_asset/models/camilia.glb.
+ // Aadhini model slot: the procedural character remains a safe fallback until
+ // the validated mobile asset is bundled at android_asset/models/aadhini.glb.
  let avatarMixer=null, avatarMode='PROCEDURAL PREVIEW';
  const gltfLoader=new GLTFLoader();
- gltfLoader.load('models/camilia.glb', (gltf) => {
+ gltfLoader.load('models/aadhini.glb', (gltf) => {
   const avatar=gltf.scene;
   const bounds=new THREE.Box3().setFromObject(avatar);
   const size=bounds.getSize(new THREE.Vector3());
@@ -53,12 +53,12 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/
   root.visible=false;
   avatarMixer=gltf.animations && gltf.animations.length ? new THREE.AnimationMixer(avatar) : null;
   if(avatarMixer && gltf.animations[0]) avatarMixer.clipAction(gltf.animations[0]).play();
-  avatarMode='CAMILIA';
-  stateLabel.textContent='CAMILIA · MODEL LOADED';
+  avatarMode='AADHINI MODEL';
+  stateLabel.textContent='AADHINI · MODEL LOADED';
  }, undefined, (error) => {
-  console.warn('Camilia GLB unavailable; keeping procedural preview.', error);
+  console.warn('Aadhini GLB unavailable; keeping procedural preview.', error);
   avatarMode='PROCEDURAL PREVIEW';
-  stateLabel.textContent='CAMILIA GLB NOT FOUND · PREVIEW MODE';
+  stateLabel.textContent='AADHINI MODEL NOT FOUND · PREVIEW MODE';
  });
  function ball(parent,name,pos,scale,material){const m=new THREE.Mesh(new THREE.SphereGeometry(1,32,24),material);m.name=name;m.position.set(...pos);m.scale.set(...scale);parent.add(m);return m;}
  // shoulders / torso
