@@ -22,7 +22,7 @@ jobs:
           curl --fail --location --retry 2 --output aadhini-android/src/main/assets/models/aadhini.glb "${AADHINI_GLB_URL}"
           test "$(stat -c%s aadhini-android/src/main/assets/models/aadhini.glb)" -eq 46388100
         env:
-          AADHINI_GLB_URL: "https://ucc2403b8fad6eca761e5901e722.dl.dropboxusercontent.com/cd/0/get/DMpuEvO9mpo8QEMtD9U3eEKTRt1y3g4uhXbrpFJWIDFhZCiiaGkrocJdZyKRV5jhT94ItN-MAx0yh76aQlWHylaO74gvig4ZGz27MtoAUSBt0Bw3JtA30f1KouV-fWetHMJYNPmWWOjUsr4mhSbTBeTypSK8Ni-SSp_o8cCG8Q5tTg/file?c_luid=26330b01"
+          AADHINI_GLB_URL: "https://uc9956cc997e430d23ac64f48799.dl.dropboxusercontent.com/cd/0/get/DMozYuMyufovNrCVQZEJnbxHyC_4EZOy22ASpJBm1Ckc_MoGXH8EakSnkXrbecco22vpUE_FFnT-kTcBeSgmkW6iOr0hck62KJBtNo4vazY25Q_1bHf_AwlookJEc2o0CAocmJPPw8D_ga4gC6RbfdhL76d7pYUMVnTSgpMC6Xb-qQ/file?c_luid=26330b01"
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
