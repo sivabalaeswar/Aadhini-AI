@@ -20,9 +20,9 @@ jobs:
         run: |
           mkdir -p aadhini-android/src/main/assets/models
           curl --fail --location --retry 2 --output aadhini-android/src/main/assets/models/aadhini.glb "${AADHINI_GLB_URL}"
-          test "$(stat -c%s aadhini-android/src/main/assets/models/aadhini.glb)" -eq 46388100
+          test "$(stat -c%s aadhini-android/src/main/assets/models/aadhini.glb)" -eq 46623492
         env:
-          AADHINI_GLB_URL: "https://uc3111d3833e529ac22b674a0672.dl.dropboxusercontent.com/cd/0/get/DMpTL731auvayc1ic_CmhOL3vg3gs3AexZU0vdMVWniBDPUuJT2-6dAd2EywLgb_mHYbQg5H-qUxBHstCJW5vhSHdfOWwGC_QqgX7Z82gQc96GOyv-hutAqKOV07e9BZNRzZaHqxco4aHjwugM-1MycC-DIra5rt_0JzSFFnxXVDjA/file?c_luid=26330b01"
+          AADHINI_GLB_URL: "https://uc78c57bc3821d6e18f868faeac9.dl.dropboxusercontent.com/cd/0/get/DMoZC4YgcBcGvB_TcnGAe8HAuSQpHLhrb-sCNsKGLFsMcWeNjqvB0dOx-TXiePaYUJMNIoEZ1D_TDACr6YEhz-eUSCHLfrqw_yYO0wNaMmopMA2WwUbMPNuViIas-S5Dz-gPxGG0f4bNirHXRXanWgdQpo9WbTjEj94EiWaN9WJIuA/file?c_luid=26330b01"
 
       - name: Repair GLB emissive materials and validate
         run: |
