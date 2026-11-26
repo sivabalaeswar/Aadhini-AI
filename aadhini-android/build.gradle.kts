@@ -11,8 +11,8 @@ android {
         applicationId = "ai.aadhini.android"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1.0"
 
     }
 
@@ -51,6 +51,7 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("androidx.webkit:webkit:1.10.0")
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
@@ -59,7 +60,6 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.airbnb.android:lottie:6.3.0")
 
-    // Real-time 3D renderer. gltfio-android provides the glTF 2.0 model loader.
     implementation("com.google.android.filament:filament-android:1.74.0")
     implementation("com.google.android.filament:gltfio-android:1.74.0")
     implementation("com.google.android.filament:filament-utils-android:1.74.0")
